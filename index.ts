@@ -19,8 +19,14 @@ class Floor extends Array<string[]>{
               
     }
 
-    checkDiagonalWin = (playerMarker : Marker) => {
+    checkLeftDiagonalWin = (playerMarker : Marker) => {
+        const pattern = (playerMarker + '.'.repeat(this.length+1)).repeat(this.length-1) + playerMarker
+        return new RegExp(pattern).test(this.stringMask())
+    }
 
+    checkRightDiagonalWin = (playerMarker : Marker) => {
+        const pattern = (playerMarker + '.'.repeat(this.length-1)).repeat(this.length-1) + playerMarker
+        return new RegExp(pattern).test(this.stringMask())
     }
 
     private stringMask = () => {
@@ -41,13 +47,13 @@ const gameBoard = ( (size) => {
 })(gridSize);
 
 gameBoard[0][0][1] = 'o'
-gameBoard[0][0][0] = 'x'
-gameBoard[0][1][0] = 'x'
-gameBoard[0][2][0] = 'x'
+gameBoard[0][0][3] = 'x'
+gameBoard[0][1][2] = 'x'
+gameBoard[0][2][1] = 'x'
 gameBoard[0][3][0] = 'x'
 
 console.log(gameBoard[0])
-console.log(gameBoard[0].checkColumnWin('x'));
+console.log(gameBoard[0].checkRightDiagonalWin('x'));
 
 
 
