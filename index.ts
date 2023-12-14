@@ -9,26 +9,16 @@ type Marker = 'x' | 'o';
 class Floor extends Array<string[]>{
 
     checkColumnWin = (playerMarker : Marker) => {
-        let checkString = ''
-        for(let i = 0; i < this.length; i++){
-            for(let j = 0; j < this.length; j++){
-                checkString += this[j][i]
-            }
-            if(checkString == playerMarker.repeat(this.length)){
-                return true
-            } else {
-                checkString = ''
-            }
-        }
-        return false
+        const pattern = (playerMarker + '.'.repeat(this.length)).repeat(this.length-1) + playerMarker
+        return new RegExp(pattern).test(this.stringMask())
     }
 
     checkRowWin = (playerMarker : Marker) => {
 
-        return new RegExp (`${playerMarker.repeat(this.length)}`).test(this.stringMask())
+        return new RegExp(`${playerMarker.repeat(this.length)}`).test(this.stringMask())
               
     }
-    
+
     checkDiagonalWin = (playerMarker : Marker) => {
 
     }
@@ -50,12 +40,14 @@ const gameBoard = ( (size) => {
 
 })(gridSize);
 
+gameBoard[0][0][1] = 'o'
 gameBoard[0][0][0] = 'x'
-gameBoard[0][0][1] = 'x'
-gameBoard[0][0][2] = 'x'
-gameBoard[0][0][3] = 'x'
+gameBoard[0][1][0] = 'x'
+gameBoard[0][2][0] = 'x'
+gameBoard[0][3][0] = 'x'
+
 console.log(gameBoard[0])
-console.log(gameBoard[0].checkRowWin('x'));
+console.log(gameBoard[0].checkColumnWin('x'));
 
 
 
