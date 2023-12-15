@@ -91,12 +91,14 @@ class full3Dboard extends Array<Floor>{
 
 interface Player{
     marker: Marker
+    parentGame : Game
     plays(row :number, col :number, floor :number): Play
 }
 
 class HumanPlayer implements Player{
     constructor(
-        public marker: Marker
+        public marker: Marker,
+        public parentGame: Game
     ){}
 
     plays(row :number, col :number, floor :number): Play {
@@ -109,11 +111,19 @@ class HumanPlayer implements Player{
     }
 }
 
-class Game {
-    private board : full3Dboard
+class CPU_Player extends HumanPlayer{
 
+}
+
+class Game{
+    public board : full3Dboard // must be private on production!
+    private turn : Player
+    public playerOne : Player
+    public playerTwo : Player
     constructor(
         private gridSize : number,
+        private cpuGame? : boolean,
+        private cpuFirst? : boolean
     ){
         this.board = ( (size) => {
             const _ = new Floor();
@@ -126,6 +136,23 @@ class Game {
             return board
 
         })(this.gridSize);
+
+        this.playerOne = new HumanPlayer('x',this)
+        this.playerTwo = new HumanPlayer('o',this)
+
+        if(this.cpuGame && this.cpuFirst){
+            this.playerOne = new CPU_Player('x',this);
+        } else if (this.cpuGame){
+            this.playerTwo = new CPU_Player('o',this);
+        };
+
+        this.turn = this.playerOne
+
+    }
+
+    setPlayIntoBoard = (played : Play) => {
+        this.board[played.floor][played.row][played.col] = played.player
+        return this
     }
 }
 
@@ -134,8 +161,7 @@ class gameFactory{
     // this should be used to choice between a game human vs human and a game human vs cpu
 }
 
-
-console.log(new Game(3))
+console.log(new Game(4).board)
 
 
 
