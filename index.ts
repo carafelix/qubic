@@ -1,17 +1,16 @@
-// definition for playing on a 3x3x3 or 4x4x4, 5x5x5, etc.
-const gridSize = 4;
-
-const xWinCondition = 'xxxx'; // 1 = x
-const oWinCondition = 'oooo'; // 2 = o
-
 type Marker = 'x' | 'o';
-interface coordinate2D {
+interface Coordinate2D {
     row: number,
     col: number
 }
-interface coordinate3D extends coordinate2D {
+interface Coordinate3D extends Coordinate2D {
     floor: number
 }
+
+interface Play extends Coordinate3D {
+    player: Marker
+}
+
 
 class Floor extends Array<string[]>{
 
@@ -56,7 +55,7 @@ class full3Dboard extends Array<Floor>{
         
         const condition = new RegExp(`(?:${playerMarker}.*?){${sizeCheck},}`)
         let meetsCondition = false;
-        let foundInIndex : undefined | coordinate2D; // 2Dcoord since straight vertical goes trough floors
+        let foundInIndex : undefined | Coordinate2D; // 2Dcoord since straight vertical goes trough floors
 
         for(let i = 0; i < straights.length; i++){
            if(condition.test(straights[i])){
@@ -88,32 +87,59 @@ class full3Dboard extends Array<Floor>{
     stringMask = () => {
         return this.join('').replace(/,/g, '')
     }
+};
+
+interface Player{
+    marker: Marker
+    plays(row :number, col :number, floor :number): Play
+}
+
+class HumanPlayer implements Player{
+    constructor(
+        public marker: Marker
+    ){}
+
+    plays(row :number, col :number, floor :number): Play {
+        return {
+            row,
+            col,
+            floor, 
+            player: this.marker
+        }
+    }
+}
+
+class Game {
+    private board : full3Dboard
+
+    constructor(
+        private gridSize : number,
+    ){
+        this.board = ( (size) => {
+            const _ = new Floor();
+            const board = new full3Dboard(size).fill(_).map(
+                                            _=>new Floor(size).fill([]).map(
+                                                floor=>new Array(size).fill(null).map(row=>'.')
+                                            ) as Floor
+            ) as full3Dboard
+    
+            return board
+
+        })(this.gridSize);
+    }
 }
 
 
-const gameBoard : full3Dboard = ( (size) => {
+class gameFactory{
+    // this should be used to choice between a game human vs human and a game human vs cpu
+}
 
-    const _ = new Floor();
-    const board = new full3Dboard(size).fill(_).map(
-                                    _=>new Floor(size).fill([]).map(
-                                        floor=>new Array(size).fill(null).map(row=>'.')
-                                    ) as Floor
-    ) as full3Dboard
 
-    return board
-
-})(gridSize);
-
-gameBoard[0][0][0] = 'x'
-gameBoard[1][0][0] = 'x'
-gameBoard[2][0][0] = 'x'
-gameBoard[3][0][0] = 'x';
-
-console.log(gameBoard.check3DStraightVerticalWinOrAlmostWin('x',4));
+console.log(new Game(3))
 
 
 
-
+;
 `
          ________________
         /   /   /   /   /|
