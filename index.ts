@@ -71,16 +71,16 @@ class full3Dboard extends Array<Floor>{
         
     }
 
-    check3DrowDiagonalWin = () => {
+    check3Drow_DiagonalWinOrAlmostWin = () => {
         const mask = this.stringMask();
 
     }
 
-    check3DcolDiagonalWin = () => {
+    check3Dcol_DiagonalWinOrAlmostWin = () => {
 
     }
 
-    check3DdiagDiagonalWin = () => {
+    check3DX_DiagonalWinOrAlmostWin = () => {
 
     }
 
@@ -154,6 +154,12 @@ class Game{
         this.board[played.floor][played.row][played.col] = played.player
         return this
     }
+
+    displayASCII = () => {
+        for(const floor of this.board){
+            console.log(floor.join('\n').replace(/,/g,' '),'\n')
+        }
+    }
 }
 
 
@@ -161,8 +167,14 @@ class gameFactory{
     // this should be used to choice between a game human vs human and a game human vs cpu
 }
 
-console.log(new Game(4).board)
 
+const g = new Game(4)
+g.board[0][0][0] = 'x'
+g.board[1][1][1] = 'x'
+g.board[2][2][2] = 'x'
+g.board[3][3][3] = 'x'
+
+g.displayASCII()
 
 
 ;
