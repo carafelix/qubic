@@ -71,17 +71,30 @@ class full3Dboard extends Array<Floor>{
         
     }
 
-    check3Drow_DiagonalWinOrAlmostWin = () => {
+    check3Drow_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
         const mask = this.stringMask();
 
     }
 
-    check3Dcol_DiagonalWinOrAlmostWin = () => {
+    check3Dcol_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
 
     }
 
-    check3DX_DiagonalWinOrAlmostWin = () => {
+    check3DX_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+        let LX_diag = ''
+        let RX_diag = ''
+        for(let i = 0; i < this.length; i++){
+            LX_diag += this[i][i][i]
+        }
+        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
+            RX_diag += this[i][i][j]
+        }
 
+        if(LX_diag === playerMarker.repeat(sizeCheck)) return true;
+        if(RX_diag === playerMarker.repeat(sizeCheck)) return true;
+
+        return false;
+        
     }
 
     stringMask = () => {
@@ -175,6 +188,8 @@ g.board[2][2][2] = 'x'
 g.board[3][3][3] = 'x'
 
 g.displayASCII()
+console.log(g.board.check3DX_DiagonalWinOrAlmostWin('x',4));
+
 
 
 ;
