@@ -38,27 +38,33 @@ class Floor extends Array<string[]>{
     stringFloorMask = () => {
         return this.join('-').replace(/,/g, '')
     }
-    
 }
 
 class full3Dboard extends Array<Floor>{
 
     area = this.length * this.length
+    /**
+     *  All check functions MUST NOT be called with any other parameter higher than this.length
+     * 
+     * @param playerMarker player who is being checked if wins or almost wins
+     * @param sizeCheck if === `this.length` means it's checking for a Win. `this.length - 1` means it's checking if it's placement away from wining
+     * @returns boolean and position in the form of : {flor,row,col}
+     */
 
-    check3DStraightVerticalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+    check3D_ToptoBot_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
         const mask = this.stringMask();
-        const straights : string[] = new Array(this.area).fill('')
+        const verticalStraights : string[] = new Array(this.area).fill('')
 
         for(let i = 0; i < mask.length; i++){
-            straights[i%this.area] += mask[i];
+            verticalStraights[i%this.area] += mask[i];
         }
         
-        const condition = new RegExp(`(?:${playerMarker}.*?){${sizeCheck},}`)
+        const winOrAlmostWinCondition = new RegExp(`(?:${playerMarker}.*?){${sizeCheck},}`)
         let meetsCondition = false;
         let foundInIndex : undefined | Coordinate2D; // 2Dcoord since straight vertical goes trough floors
 
-        for(let i = 0; i < straights.length; i++){
-           if(condition.test(straights[i])){
+        for(let i = 0; i < verticalStraights.length; i++){
+           if(winOrAlmostWinCondition.test(verticalStraights[i])){
             meetsCondition = true;
             foundInIndex = {row: Math.floor(i / this.length) , col: i % this.length };
            }
@@ -71,34 +77,53 @@ class full3Dboard extends Array<Floor>{
         
     }
 
-    check3Drow_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
-        const mask = this.stringMask();
+    check3D_row_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+        // const mask = this.stringMask();
+        // const consecutive3Drow : string[] = new Array(this.area).fill('')
+        // for(let i = 0; i<this.area; i++){
+        //     consecutive3Drow[i] = this[i % this.length][][]
+        // }
 
     }
 
-    check3Dcol_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+    check3D_col_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
 
     }
 
-    check3DX_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
-        let LX_diag = ''
-        let RX_diag = ''
+    check3D_OpositeCorners_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+
+        const condition =  playerMarker.repeat(sizeCheck);
+        
+        let TL_diag = ''
+        let TR_diag = ''
+        let BL_diag = ''
+        let BR_diag = ''
         for(let i = 0; i < this.length; i++){
-            LX_diag += this[i][i][i]
+            TL_diag += this[i][i][i]
         }
         for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
-            RX_diag += this[i][i][j]
+            TR_diag += this[i][i][j]
+        }
+        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
+            BL_diag += this[i][j][j]
+        }
+        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
+            BR_diag += this[j][i][j]
         }
 
-        if(LX_diag === playerMarker.repeat(sizeCheck)) return true;
-        if(RX_diag === playerMarker.repeat(sizeCheck)) return true;
+        if( TL_diag === condition ||
+            TR_diag === condition ||
+            BR_diag === condition ||
+            BL_diag === condition   ){
 
+                return true;
+            }
         return false;
         
     }
 
     stringMask = () => {
-        return this.join('').replace(/,/g, '')
+        return this.join('-').replace(/,/g, '')
     }
 };
 
@@ -182,13 +207,34 @@ class gameFactory{
 
 
 const g = new Game(4)
-g.board[0][0][0] = 'x'
-g.board[1][1][1] = 'x'
-g.board[2][2][2] = 'x'
-g.board[3][3][3] = 'x'
+
+
+
+// g.board[0][0][0] = 'x'
+// g.board[1][1][1] = 'x'
+// g.board[2][2][2] = 'x'
+// g.board[3][3][3] = 'x'
+
+// g.board[0][0][3] = 'x'
+// g.board[1][1][2] = 'x'
+// g.board[2][2][1] = 'x'
+// g.board[3][3][0] = 'x'
+
+// g.board[0][3][0] = 'x'
+// g.board[1][2][1] = 'x'
+// g.board[2][1][2] = 'x'
+// g.board[3][0][3] = 'x'
+
+// g.board[0][3][3] = 'x'
+// g.board[1][2][2] = 'x'
+// g.board[2][1][1] = 'x'
+// g.board[3][0][0] = 'x'
+
 
 g.displayASCII()
-console.log(g.board.check3DX_DiagonalWinOrAlmostWin('x',4));
+console.log(g.board.check3D_OpositeCorners_DiagonalWinOrAlmostWin('x'));
+
+// console.log(g.board.stringMask())
 
 
 
