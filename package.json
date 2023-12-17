@@ -12,6 +12,6 @@
     "testBoard": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts"
   },
   "dependencies": {
-    "inquirer": "^9.2.12"
+    "@inquirer/prompts": "^3.3.0"
   }
 }

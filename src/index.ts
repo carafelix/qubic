@@ -240,18 +240,15 @@ export class Game{
             console.log(floor.join('\n').replace(/,/g,' '),'\n')
         }
     }
+
+    isFinish = () => {
+        return this.finish
+    }
 }
 
-export class CLI_Game extends Game {
-    
-}
+
 
 export const g = new Game(4)
-
-
-
-// g.displayInLog()
-// console.log(g.board.stringMask())
 
 
 ;

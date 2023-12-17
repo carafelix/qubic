@@ -1,15 +1,23 @@
-import { CLI_Game } from "./index.ts";
-import inquirer, { Answers } from "inquirer";
+#!/bin/bash/env node
+
+import { Game } from "./index.ts";
+import { select , input } from "@inquirer/prompts"
+
+export class CLI_Game extends Game {
+    
+}
+
 
 
 async function main() {
-    await inquirer.prompt([{
-        type: 'confirm',
-        name: 'toBeDelivered',
-        message: 'Is this for delivery?',
-        default: false,
-        transformer: (answer:Answers) => (answer ? '👍' : '👎'),
-      },])
+
+    const game = new CLI_Game(4, true); // Human vs CPU game
+    let run = true
+    while(!game.isFinish() && run){
+
+      const answer = await input({ message: 'Enter your name' });
+      run = false
+    }
 }
 
-main();
+main()
