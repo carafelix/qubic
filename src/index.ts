@@ -11,7 +11,6 @@ interface Play extends Coordinate3D {
     player: Marker
 }
 
-
 export class Floor extends Array<string[]>{
 
     // an alternative check function but be done that also checks for this,length-1 markers, meaning in that row/col/diag only 1 marker is left to win
@@ -213,9 +212,16 @@ export class Game{
 
     }
 
+    // this must be private since it breaks encapsulation. The player must attempt to play the move and comunicate with the game obj
+    // and the game obj must check, is this player turns? if so, allows the move, if not, not
+
     setPlayIntoBoard = (played : Play) => {
         this.board[played.floor][played.row][played.col] = played.player
         return this
+    }
+
+    getSpotOnBoard = (coord : Coordinate3D) => {
+        return this.board[coord.floor][coord.row][coord.col]
     }
 
     displayInLog = () => {
@@ -231,7 +237,7 @@ export class gameFactory{
 }
 
 
-const g = new Game(4)
+export const g = new Game(4)
 
 
 
