@@ -29,8 +29,9 @@ export class Floor extends Array<string[]>{
 export class full3Dboard extends Array<Floor>{
 
     area = this.length * this.length
+
     /**
-     *  All check functions MUST NOT be called with any other parameter higher than this.length
+     *  All check functions MUST NOT be called with @param sizeCheck higher than this.length // I should prevent it inside each function. Some checks might or might not break when called with less than this.length - 2. Must review
      * 
      * @param playerMarker player who is being checked if wins or almost wins
      * @param sizeCheck if === `this.length` means it's checking for a Win. `this.length - 1` means it's checking if it's placement away from wining
@@ -103,7 +104,7 @@ export class full3Dboard extends Array<Floor>{
 
     check3D_OpositeCorners_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
 
-        const condition =  playerMarker.repeat(sizeCheck);
+        const win_OrAlmostWin_Condition =  playerMarker.repeat(sizeCheck);
         
         let TL_diag = ''
         let TR_diag = ''
@@ -122,10 +123,10 @@ export class full3Dboard extends Array<Floor>{
             BR_diag += this[j][i][j]
         }
 
-        if( TL_diag === condition ||
-            TR_diag === condition ||
-            BR_diag === condition ||
-            BL_diag === condition   ){
+        if( TL_diag === win_OrAlmostWin_Condition ||
+            TR_diag === win_OrAlmostWin_Condition ||
+            BR_diag === win_OrAlmostWin_Condition ||
+            BL_diag === win_OrAlmostWin_Condition   ){
 
                 return true;
             }
@@ -172,6 +173,7 @@ export class CPU_Player extends HumanPlayer{
 export class Game{
     public board : full3Dboard // must be private on production!
     private turn : Player
+    private finish : boolean
     public playerOne : Player
     public playerTwo : Player
     constructor(
@@ -179,6 +181,7 @@ export class Game{
         private cpuGame? : boolean,
         private cpuFirst? : boolean
     ){
+        this.finish = false;
         this.board = ( (size) => {
             const _ = new Floor();
             const board = new full3Dboard(size).fill(_).map(
@@ -201,11 +204,7 @@ export class Game{
         };
 
         this.turn = this.playerOne
-
     }
-
-    // this must be private since it breaks encapsulation. The player must attempt to play the move and comunicate with the game obj
-    // and the game obj must check, is this player turns? if so, allows the move, if not, not
 
     private setPlayIntoBoard = (played : Coordinate3D, from : Player) => {
         this.board[played.floor][played.row][played.col] = from.marker
@@ -217,10 +216,19 @@ export class Game{
     }
 
     turnPlayHandler = (played : Coordinate3D, from : Player) => {
-        if(this.turn === from){
+        if(this.turn === from && this.checkPlaySpotIsEmpty(played)){
             this.setPlayIntoBoard(played, from)
             this.switchPlayerTurn()
+            this.updateUI()
         }
+    }
+
+    checkPlaySpotIsEmpty = (coord : Coordinate3D) => {
+        return (this.board[coord.floor][coord.row][coord.col] === '.')
+    }
+
+    updateUI = () => {
+        this.displayInLog()
     }
 
     private switchPlayerTurn = () => {
@@ -234,11 +242,9 @@ export class Game{
     }
 }
 
-
-export class gameFactory{
-    // this should be used to choice between a game human vs human and a game human vs cpu
+export class CLI_Game extends Game {
+    
 }
-
 
 export const g = new Game(4)
 
@@ -246,9 +252,6 @@ export const g = new Game(4)
 
 // g.displayInLog()
 // console.log(g.board.stringMask())
-
-console.log(g.board.check3D_row_WinOrAlmostWin('x'));
-
 
 
 ;
