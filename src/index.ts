@@ -1,16 +1,3 @@
-type Marker = 'x' | 'o';
-interface Coordinate2D {
-    row: number,
-    col: number
-}
-interface Coordinate3D extends Coordinate2D {
-    floor: number
-}
-
-interface Play extends Coordinate3D {
-    player: Marker
-}
-
 export class Floor extends Array<string[]>{
 
     // an alternative check function but be done that also checks for this,length-1 markers, meaning in that row/col/diag only 1 marker is left to win
@@ -151,10 +138,20 @@ export class full3Dboard extends Array<Floor>{
     }
 };
 
+type Marker = 'x' | 'o';
+interface Coordinate2D {
+    row: number,
+    col: number
+}
+interface Coordinate3D extends Coordinate2D {
+    floor: number
+}
+
+
 interface Player{
     marker: Marker
     parentGame : Game
-    plays(row :number, col :number, floor :number): Play
+    plays(desiredPlay : Coordinate3D): void
 }
 
 export class HumanPlayer implements Player{
@@ -163,13 +160,8 @@ export class HumanPlayer implements Player{
         public parentGame: Game
     ){}
 
-    plays(row :number, col :number, floor :number): Play {
-        return {
-            row,
-            col,
-            floor, 
-            player: this.marker
-        }
+    plays(desiredPlay : Coordinate3D) {
+        this.parentGame.turnPlayHandler(desiredPlay, this)
     }
 }
 
@@ -215,13 +207,24 @@ export class Game{
     // this must be private since it breaks encapsulation. The player must attempt to play the move and comunicate with the game obj
     // and the game obj must check, is this player turns? if so, allows the move, if not, not
 
-    setPlayIntoBoard = (played : Play) => {
-        this.board[played.floor][played.row][played.col] = played.player
+    private setPlayIntoBoard = (played : Coordinate3D, from : Player) => {
+        this.board[played.floor][played.row][played.col] = from.marker
         return this
     }
 
     getSpotOnBoard = (coord : Coordinate3D) => {
         return this.board[coord.floor][coord.row][coord.col]
+    }
+
+    turnPlayHandler = (played : Coordinate3D, from : Player) => {
+        if(this.turn === from){
+            this.setPlayIntoBoard(played, from)
+            this.switchPlayerTurn()
+        }
+    }
+
+    private switchPlayerTurn = () => {
+        (this.turn === this.playerOne) ? this.turn = this.playerTwo : this.turn = this.playerOne
     }
 
     displayInLog = () => {
