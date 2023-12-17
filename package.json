@@ -1,12 +1,17 @@
 {
+  "type": "module",
   "devDependencies": {
     "@types/chai": "^4.3.11",
+    "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
     "chai": "^4.3.10",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2"
   },
-    "scripts": {
-    "testBoard": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts" 
+  "scripts": {
+    "testBoard": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts"
+  },
+  "dependencies": {
+    "inquirer": "^9.2.12"
   }
 }
