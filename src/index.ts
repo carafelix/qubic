@@ -12,7 +12,7 @@ interface Play extends Coordinate3D {
 }
 
 
-class Floor extends Array<string[]>{
+export class Floor extends Array<string[]>{
 
     // an alternative check function but be done that also checks for this,length-1 markers, meaning in that row/col/diag only 1 marker is left to win
 
@@ -40,7 +40,7 @@ class Floor extends Array<string[]>{
     }
 }
 
-class full3Dboard extends Array<Floor>{
+export class full3Dboard extends Array<Floor>{
 
     area = this.length * this.length
     /**
@@ -79,9 +79,9 @@ class full3Dboard extends Array<Floor>{
 
     check3D_row_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => { 
         const mask = this.stringMask();
-        const consecutive3Drow : string[] = new Array(this.area).fill('') // do not use for loop. regex should cut it 
 
-        // compose a regex for Lrow
+        // compose a regex for Left to Right row's and vice-versa
+
         let L_row = '';
         let R_row = '';
         for(let i = 0, j = 1; i < sizeCheck - 1; i++, j++){
@@ -89,7 +89,7 @@ class full3Dboard extends Array<Floor>{
             R_row += '.'.repeat(sizeCheck - j) + playerMarker + '.'.repeat(this.area - (sizeCheck - j+1))
         }
 
-        const L_regEx = new RegExp(L_row + '.'.repeat(sizeCheck - 1 ) + playerMarker,'gm')
+        const L_regEx = new RegExp(L_row + '.'.repeat(sizeCheck - 1 ) + playerMarker, 'gm')
         const R_regEx = new RegExp(R_row + playerMarker, 'gm')
 
         return (L_regEx.test(mask) || R_regEx.test(mask))
@@ -97,7 +97,22 @@ class full3Dboard extends Array<Floor>{
     }
 
     check3D_col_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+        const mask = this.stringMask();
 
+         // compose a regex for Top to Bottom columns and vice-versa
+
+         let T_row = '';
+         let B_row = '';
+         for(let i = 0, j = 1; i < sizeCheck - 1; i++, j++){
+             T_row += '.'.repeat(i) + playerMarker + '.'.repeat(this.area - j) 
+             B_row += '.'.repeat(sizeCheck - j) + playerMarker + '.'.repeat(this.area - (sizeCheck - j+1))
+         }
+ 
+         const T_regEx = new RegExp(T_row + '.'.repeat(sizeCheck - 1 ) + playerMarker, 'gm')
+         const B_regEx = new RegExp(B_row + playerMarker, 'gm')
+ 
+         return (T_regEx.test(mask) || B_regEx.test(mask))
+ 
     }
 
     check3D_OpositeCorners_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
@@ -143,7 +158,7 @@ interface Player{
     plays(row :number, col :number, floor :number): Play
 }
 
-class HumanPlayer implements Player{
+export class HumanPlayer implements Player{
     constructor(
         public marker: Marker,
         public parentGame: Game
@@ -159,11 +174,11 @@ class HumanPlayer implements Player{
     }
 }
 
-class CPU_Player extends HumanPlayer{
+export class CPU_Player extends HumanPlayer{
 
 }
 
-class Game{
+export class Game{
     public board : full3Dboard // must be private on production!
     private turn : Player
     public playerOne : Player
@@ -211,7 +226,7 @@ class Game{
 }
 
 
-class gameFactory{
+export class gameFactory{
     // this should be used to choice between a game human vs human and a game human vs cpu
 }
 
