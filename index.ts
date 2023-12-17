@@ -77,12 +77,22 @@ class full3Dboard extends Array<Floor>{
         
     }
 
-    check3D_row_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
-        // const mask = this.stringMask();
-        // const consecutive3Drow : string[] = new Array(this.area).fill('')
-        // for(let i = 0; i<this.area; i++){
-        //     consecutive3Drow[i] = this[i % this.length][][]
-        // }
+    check3D_row_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => { 
+        const mask = this.stringMask();
+        const consecutive3Drow : string[] = new Array(this.area).fill('') // do not use for loop. regex should cut it 
+
+        // compose a regex for Lrow
+        let L_row = '';
+        let R_row = '';
+        for(let i = 0, j = 1; i < sizeCheck - 1; i++, j++){
+            L_row += '.'.repeat(i) + playerMarker + '.'.repeat(this.area - j) 
+            R_row += '.'.repeat(sizeCheck - j) + playerMarker + '.'.repeat(this.area - (sizeCheck - j+1))
+        }
+
+        const L_regEx = new RegExp(L_row + '.'.repeat(sizeCheck - 1 ) + playerMarker,'gm')
+        const R_regEx = new RegExp(R_row + playerMarker, 'gm')
+
+        return (L_regEx.test(mask) || R_regEx.test(mask))
 
     }
 
@@ -123,7 +133,7 @@ class full3Dboard extends Array<Floor>{
     }
 
     stringMask = () => {
-        return this.join('-').replace(/,/g, '')
+        return this.join('').replace(/,/g, '')
     }
 };
 
@@ -193,7 +203,7 @@ class Game{
         return this
     }
 
-    displayASCII = () => {
+    displayInLog = () => {
         for(const floor of this.board){
             console.log(floor.join('\n').replace(/,/g,' '),'\n')
         }
@@ -210,31 +220,10 @@ const g = new Game(4)
 
 
 
-// g.board[0][0][0] = 'x'
-// g.board[1][1][1] = 'x'
-// g.board[2][2][2] = 'x'
-// g.board[3][3][3] = 'x'
-
-// g.board[0][0][3] = 'x'
-// g.board[1][1][2] = 'x'
-// g.board[2][2][1] = 'x'
-// g.board[3][3][0] = 'x'
-
-// g.board[0][3][0] = 'x'
-// g.board[1][2][1] = 'x'
-// g.board[2][1][2] = 'x'
-// g.board[3][0][3] = 'x'
-
-// g.board[0][3][3] = 'x'
-// g.board[1][2][2] = 'x'
-// g.board[2][1][1] = 'x'
-// g.board[3][0][0] = 'x'
-
-
-g.displayASCII()
-console.log(g.board.check3D_OpositeCorners_DiagonalWinOrAlmostWin('x'));
-
+// g.displayInLog()
 // console.log(g.board.stringMask())
+
+console.log(g.board.check3D_row_WinOrAlmostWin('x'));
 
 
 
