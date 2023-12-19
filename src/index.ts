@@ -150,16 +150,6 @@ export class full3Dboard extends Array<Floor>{
         }
         return win
     }
-
-    checkWin = (p : Player) => {
-        return (
-            this.check3D_OpositeCorners_DiagonalWin(p.marker) ||
-            this.check3D_TpotoBotVertical_Win(p.marker) ||
-            this.check3D_col_Win(p.marker) ||
-            this.check3D_row_Win(p.marker) ||
-            this.checkAllFloors(p.marker)
-        )
-    }
 };
 
 type Marker = 'x' | 'o';
@@ -200,9 +190,9 @@ export class HumanPlayer implements Player{
 
         while(!play){
             try {
-                playInput = prompt('Input your play in the format of Z X Y, delimited by a space');
+                playInput = prompt(`${this.name} Please input your play in the format of Z Y X, delimited by a space`);
             } catch {
-                playInput = await input({message: 'Input your play in the format of Z X Y, delimited by a space'})
+                playInput = await input({message: `${this.name} Please input your play in the format of Z Y X, delimited by a space`})
             }
             if(!playInput || !validDelimiter.test((playInput))) {
                 console.log('Input is not in the valid format, try again');
@@ -259,6 +249,7 @@ export class Game{
     private finish : boolean
     public playerOne : Player
     public playerTwo : Player
+    public winner? : Player
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
@@ -325,6 +316,19 @@ export class Game{
     displayInLog = () => {
         for(const floor of this.board){
             console.log(floor.join('\n').replace(/,/g,' '),'\n')
+        }
+    }
+
+    checkWin = (p : Player) => {
+        if (
+            this.board.check3D_OpositeCorners_DiagonalWin(p.marker) ||
+            this.board.check3D_TpotoBotVertical_Win(p.marker) ||
+            this.board.check3D_col_Win(p.marker) ||
+            this.board.check3D_row_Win(p.marker) ||
+            this.board.checkAllFloors(p.marker)
+        ){
+            this.finish = true;
+            this.winner = p
         }
     }
 

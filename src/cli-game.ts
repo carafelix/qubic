@@ -12,13 +12,16 @@ export class CLI_Game extends Game {
 
 async function main() {
 
-    const game = new CLI_Game(4); // Human vs CPU game
+    const game = new CLI_Game(3); // Human vs CPU game
     while(!game.isFinish()){
       const playerInTurn = game.getPlayerInTurn();
       const desiredPlay = await playerInTurn.getPlay()
       playerInTurn.plays(desiredPlay);
-      
+      game.checkWin(playerInTurn)
     }
+
+    console.log(`We have a winner!\nCongratulations ${game.winner?.name}`);
+    
 }
 
 main()
