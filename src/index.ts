@@ -91,13 +91,16 @@ export class full3Dboard extends Array<Floor>{
 
          let T_row = '';
          let B_row = '';
-         for(let i = 0, j = 1; i < sizeCheck - 1; i++, j++){
-             T_row += '.'.repeat(i) + playerMarker + '.'.repeat(this.area - j) 
-             B_row += '.'.repeat(sizeCheck - j) + playerMarker + '.'.repeat(this.area - (sizeCheck - j+1))
-         }
+         for(let i = 0, j = this.length - 1; i < sizeCheck; i++, j--){
+             T_row += '.'.repeat(this.length * i) + playerMarker + '.'.repeat((this.area - (this.length * i)) - 1) 
+             B_row += '.'.repeat(this.length * j) + playerMarker + '.'.repeat((this.length * (i+1)) - 1)
+        }
  
-         const T_regEx = new RegExp(T_row + '.'.repeat(sizeCheck - 1 ) + playerMarker, 'gm')
-         const B_regEx = new RegExp(B_row + playerMarker, 'gm')
+         const T_regEx = new RegExp(T_row.slice(0, mask.length - (this.length - 1)), 'gm')
+         const B_regEx = new RegExp(B_row.replace(/\./g,' ').trim().replace(/\s/g, '.'), 'gm')
+
+         console.log(B_regEx);
+         
  
          return (T_regEx.test(mask) || B_regEx.test(mask))
  
@@ -136,6 +139,9 @@ export class full3Dboard extends Array<Floor>{
     }
     stringMask = () => {
         return this.join('').replace(/,/g, '')
+    }
+    stringUnmask = (maskedBoard : string) => {
+        
     }
 
     checkAllFloors = (playerMarker : Marker) => {
@@ -186,7 +192,9 @@ export class HumanPlayer implements Player{
 
         let play;
         let playInput;
-        const validDelimiter = new RegExp(/^(\d{1,}\s\d{1,}\s\d{1,})$/m)
+        const l = this.parentGame.board.length
+        
+        const validDelimiter = new RegExp(`^(\\d{1,}\\s){${l-1}}\\d{1,}$` , 'm')
 
         while(!play){
             try {
