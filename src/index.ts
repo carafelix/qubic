@@ -1,3 +1,5 @@
+import { select , input } from "@inquirer/prompts"
+
 export class Floor extends Array<string[]>{
 
     // an alternative check function but be done that also checks for this,length-1 markers, meaning in that row/col/diag only 1 marker is left to win
@@ -132,9 +134,31 @@ export class full3Dboard extends Array<Floor>{
         return false;
         
     }
-
     stringMask = () => {
         return this.join('').replace(/,/g, '')
+    }
+
+    checkAllFloors = (playerMarker : Marker) => {
+        let win;
+        for(const floor of this){
+            if (floor.checkRowWin(playerMarker) ||
+            floor.checkColumnWin(playerMarker) ||
+            floor.checkLeftDiagonalWin(playerMarker) ||
+            floor.checkRightDiagonalWin(playerMarker)){
+                win = true
+            }
+        }
+        return win
+    }
+
+    checkWin = (p : Player) => {
+        return (
+            this.check3D_OpositeCorners_DiagonalWin(p.marker) ||
+            this.check3D_TpotoBotVertical_Win(p.marker) ||
+            this.check3D_col_Win(p.marker) ||
+            this.check3D_row_Win(p.marker) ||
+            this.checkAllFloors(p.marker)
+        )
     }
 };
 
@@ -149,24 +173,84 @@ interface Coordinate3D extends Coordinate2D {
 
 
 interface Player{
-    marker: Marker
+    marker : Marker
     parentGame : Game
+    name : string
     plays(desiredPlay : Coordinate3D): void
+    getPlay() : Coordinate3D | Promise<Coordinate3D>
 }
 
 export class HumanPlayer implements Player{
+
     constructor(
         public marker: Marker,
-        public parentGame: Game
+        public parentGame: Game,
+        public name: string
     ){}
 
-    plays(desiredPlay : Coordinate3D) {
+    plays = (desiredPlay : Coordinate3D) => {
         this.parentGame.turnPlayHandler(desiredPlay, this)
+    }
+
+    public async getPlay() : Promise<Coordinate3D> {
+
+        let play;
+        let playInput;
+        const validDelimiter = new RegExp(/^(\d{1,}\s\d{1,}\s\d{1,})$/m)
+
+        while(!play){
+            try {
+                playInput = prompt('Input your play in the format of Z X Y, delimited by a space');
+            } catch {
+                playInput = await input({message: 'Input your play in the format of Z X Y, delimited by a space'})
+            }
+            if(!playInput || !validDelimiter.test((playInput))) {
+                console.log('Input is not in the valid format, try again');
+                continue
+            };
+
+            play = this.validStringToPlay((playInput))
+            if(!this.parentGame.checkPlaySpotIsEmpty(play)){
+                console.log('Play spot is out of range or occuppied, try again');
+                play = null
+            }
+        }
+
+        return play
+
+    }
+    private validStringToPlay(str : string) : Coordinate3D {
+        const ZXY = str.split(/\s/gm)
+        return {
+            floor: +ZXY[0]-1,
+            row: +ZXY[1]-1,
+            col: +ZXY[2]-1,
+        }
+    }
+    
+    setName(name : string){
+        this.name = name;
     }
 }
 
-export class CPU_Player extends HumanPlayer{
+export class CPU_Player implements Player{
+    constructor(
+        public marker: Marker,
+        public parentGame: Game,
+        public name: string
+    ){}
 
+    plays = (desiredPlay : Coordinate3D) => {
+        this.parentGame.turnPlayHandler(desiredPlay, this)
+    }
+
+    getPlay() : Coordinate3D{
+        return {
+            floor: 1,
+            row: 1,
+            col: 1
+        }
+    }
 }
 
 export class Game{
@@ -178,7 +262,7 @@ export class Game{
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
-        private cpuFirst? : boolean
+        private cpuFirst? : boolean,
     ){
         this.finish = false;
         this.board = ( (size) => {
@@ -193,14 +277,14 @@ export class Game{
 
         })(this.gridSize);
 
-        this.playerOne = new HumanPlayer('x',this)
-        this.playerTwo = new HumanPlayer('o',this)
+        this.playerOne = new HumanPlayer('x', this, 'p1')
+        this.playerTwo = new HumanPlayer('o', this, 'p2')
 
         if(this.cpuGame && this.cpuFirst){
-            this.playerOne = new CPU_Player('x',this);
+            this.playerOne = new CPU_Player('x',this, 'cpu');
         } else if (this.cpuGame){
-            this.playerTwo = new CPU_Player('o',this);
-        };
+            this.playerTwo = new CPU_Player('o',this, 'cpu');
+        }
 
         this.playerInTurn = this.playerOne
     }
@@ -227,7 +311,7 @@ export class Game{
     }
 
     checkPlaySpotIsEmpty = (coord : Coordinate3D) => {
-        return (this.board[coord.floor][coord.row][coord.col] === '.')
+        return (this.board?.[coord.floor]?.[coord.row]?.[coord.col] === '.')
     }
 
     updateUI = () => {
@@ -247,6 +331,11 @@ export class Game{
     isFinish = () => {
         return this.finish
     }
+
+    setGameAsCPUOnly = () => {
+        this.playerOne = new CPU_Player('x', this, 'cpu1');
+        this.playerTwo = new CPU_Player('o', this, 'cpu2');
+    } 
 }
 
 
