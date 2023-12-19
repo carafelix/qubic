@@ -31,14 +31,15 @@ export class full3Dboard extends Array<Floor>{
     area = this.length * this.length
 
     /**
-     *  All check functions MUST NOT be called with @param sizeCheck higher than this.length // I should prevent it inside each function. Some checks might or might not break when called with less than this.length - 2. Must review
-     * 
      * @param playerMarker player who is being checked if wins or almost wins
-     * @param sizeCheck if === `this.length` means it's checking for a Win. `this.length - 1` means it's checking if it's placement away from wining
+     * @param sizeCheck if === `this.length` means it's checking for a Win. 
+     *                  `this.length - n` means it's checking for consecutive marks of n.
+     *                  It does not account for ex: xx.x or x.xx if gridSize is 4 and sizeCheck is 3
+     * 
      * @returns boolean and position in the form of : {flor,row,col}
      */
 
-    check3D_ToptoBot_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+    check3D_TpotoBotVertical_Win = (playerMarker : Marker, sizeCheck = this.length) => {
         const mask = this.stringMask();
         const verticalStraights : string[] = new Array(this.area).fill('')
 
@@ -46,25 +47,23 @@ export class full3Dboard extends Array<Floor>{
             verticalStraights[i%this.area] += mask[i];
         }
         
-        const winOrAlmostWinCondition = new RegExp(`(?:${playerMarker}.*?){${sizeCheck},}`)
-        let meetsCondition = false;
+        const winCondition = new RegExp(`(?:${playerMarker}.*?){${sizeCheck},}`)
+        let meetsWinCondition = false;
+
         let foundInIndex : undefined | Coordinate2D; // 2Dcoord since straight vertical goes trough floors
 
         for(let i = 0; i < verticalStraights.length; i++){
-           if(winOrAlmostWinCondition.test(verticalStraights[i])){
-            meetsCondition = true;
-            foundInIndex = {row: Math.floor(i / this.length) , col: i % this.length };
+           if(winCondition.test(verticalStraights[i])){
+            meetsWinCondition = true;
+            // foundInIndex = {row: Math.floor(i / this.length) , col: i % this.length };
            }
         }
 
-        return {
-            meetsCondition,
-            foundInIndex
-        }
+        return meetsWinCondition
         
     }
 
-    check3D_row_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => { 
+    check3D_row_Win = (playerMarker : Marker, sizeCheck = this.length) => { 
         const mask = this.stringMask();
 
         // compose a regex for Left to Right row's and vice-versa
@@ -83,7 +82,7 @@ export class full3Dboard extends Array<Floor>{
 
     }
 
-    check3D_col_WinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+    check3D_col_Win = (playerMarker : Marker, sizeCheck = this.length) => {
         const mask = this.stringMask();
 
          // compose a regex for Top to Bottom columns and vice-versa
@@ -102,9 +101,9 @@ export class full3Dboard extends Array<Floor>{
  
     }
 
-    check3D_OpositeCorners_DiagonalWinOrAlmostWin = (playerMarker : Marker, sizeCheck = this.length) => {
+    check3D_OpositeCorners_DiagonalWin = (playerMarker : Marker, sizeCheck = this.length) => {
 
-        const win_OrAlmostWin_Condition =  playerMarker.repeat(sizeCheck);
+        const winCondition =  playerMarker.repeat(sizeCheck);
         
         let TL_diag = ''
         let TR_diag = ''
@@ -123,10 +122,10 @@ export class full3Dboard extends Array<Floor>{
             BR_diag += this[j][i][j]
         }
 
-        if( TL_diag === win_OrAlmostWin_Condition ||
-            TR_diag === win_OrAlmostWin_Condition ||
-            BR_diag === win_OrAlmostWin_Condition ||
-            BL_diag === win_OrAlmostWin_Condition   ){
+        if( TL_diag === winCondition ||
+            TR_diag === winCondition ||
+            BR_diag === winCondition ||
+            BL_diag === winCondition   ){
 
                 return true;
             }
@@ -172,7 +171,7 @@ export class CPU_Player extends HumanPlayer{
 
 export class Game{
     public board : full3Dboard // must be private on production!
-    private turn : Player
+    private playerInTurn : Player
     private finish : boolean
     public playerOne : Player
     public playerTwo : Player
@@ -203,7 +202,7 @@ export class Game{
             this.playerTwo = new CPU_Player('o',this);
         };
 
-        this.turn = this.playerOne
+        this.playerInTurn = this.playerOne
     }
 
     private setPlayIntoBoard = (played : Coordinate3D, from : Player) => {
@@ -216,11 +215,15 @@ export class Game{
     }
 
     turnPlayHandler = (played : Coordinate3D, from : Player) => {
-        if(this.turn === from && this.checkPlaySpotIsEmpty(played)){
+        if(this.playerInTurn === from && this.checkPlaySpotIsEmpty(played)){
             this.setPlayIntoBoard(played, from)
             this.switchPlayerTurn()
             this.updateUI()
         }
+    }
+
+    getPlayerInTurn = () => {
+        return this.playerInTurn
     }
 
     checkPlaySpotIsEmpty = (coord : Coordinate3D) => {
@@ -232,7 +235,7 @@ export class Game{
     }
 
     private switchPlayerTurn = () => {
-        (this.turn === this.playerOne) ? this.turn = this.playerTwo : this.turn = this.playerOne
+        (this.playerInTurn === this.playerOne) ? this.playerInTurn = this.playerTwo : this.playerInTurn = this.playerOne
     }
 
     displayInLog = () => {
