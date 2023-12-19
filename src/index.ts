@@ -193,7 +193,7 @@ export class HumanPlayer implements Player{
         let play;
         let playInput;
         const l = this.parentGame.board.length
-        
+
         const validDelimiter = new RegExp(`^(\\d{1,}\\s){${l-1}}\\d{1,}$` , 'm')
 
         while(!play){
@@ -263,6 +263,7 @@ export class Game{
         private cpuGame? : boolean,
         private cpuFirst? : boolean,
     ){
+        if(this.gridSize < 3) this.gridSize = 3;
         this.finish = false;
         this.board = ( (size) => {
             const _ = new Floor();
