@@ -98,9 +98,6 @@ export class full3Dboard extends Array<Floor>{
  
          const T_regEx = new RegExp(T_row.slice(0, mask.length - (this.length - 1)), 'gm')
          const B_regEx = new RegExp(B_row.replace(/\./g,' ').trim().replace(/\s/g, '.'), 'gm')
-
-         console.log(B_regEx);
-         
  
          return (T_regEx.test(mask) || B_regEx.test(mask))
  
@@ -194,7 +191,7 @@ export class HumanPlayer implements Player{
         let playInput;
         const l = this.parentGame.board.length
 
-        const validDelimiter = new RegExp(`^(\\d{1,}\\s){${l-1}}\\d{1,}$` , 'm')
+        const validDelimiter = new RegExp(/^(\d{1,}\s\d{1,}\s\d{1,})$/m)
 
         while(!play){
             try {
@@ -202,12 +199,12 @@ export class HumanPlayer implements Player{
             } catch {
                 playInput = await input({message: `${this.name} Please input your play in the format of Z Y X, delimited by a space`})
             }
-            if(!playInput || !validDelimiter.test((playInput))) {
+            if(!playInput || !validDelimiter.test((playInput.trim()))) {
                 console.log('Input is not in the valid format, try again');
                 continue
             };
 
-            play = this.validStringToPlay((playInput))
+            play = this.validStringToPlay((playInput.trim()))
             if(!this.parentGame.checkPlaySpotIsEmpty(play)){
                 console.log('Play spot is out of range or occuppied, try again');
                 play = null
