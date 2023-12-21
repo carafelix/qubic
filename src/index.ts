@@ -117,7 +117,6 @@ export class full3Dboard extends Array<Floor>{
             TR_diag += this[i][i][j]
             BL_diag += this[i][j][j]
             BR_diag += this[j][i][j]
-
         }
 
         if( TL_diag === winCondition ||
@@ -254,9 +253,9 @@ export class CPU_Player implements Player{
 
 
         return {
-            floor: 1,
-            row: 1,
-            col: 1
+            floor: Math.floor(Math.random()*this.parentGame.board.length),  // stupid ia
+            row: Math.floor(Math.random()*this.parentGame.board.length),
+            col: Math.floor(Math.random()*this.parentGame.board.length)
         }
     }
 }
@@ -295,7 +294,7 @@ export class Game{
         } else if (this.cpuGame){
             this.playerTwo = new CPU_Player('o',this, 'cpu');
         }
-
+        
         this.playerInTurn = this.playerOne
     }
 
@@ -356,9 +355,14 @@ export class Game{
     }
 
     setGameAsCPUOnly = () => {
+        // next line doesn't allow for setting the game as cpu only after move already have been played
+        if(this.board.stringMask().includes('o') || this.board.stringMask().includes('x')){
+            return;
+        }
         this.playerOne = new CPU_Player('x', this, 'cpu1');
         this.playerTwo = new CPU_Player('o', this, 'cpu2');
-    } 
+        this.playerInTurn = this.playerOne
+    }  
 }
 
 

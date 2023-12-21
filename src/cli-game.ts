@@ -13,6 +13,7 @@ export class CLI_Game extends Game {
 async function main() {
 
     const game = new CLI_Game(3); // Human vs Human game
+    game.setGameAsCPUOnly()
     
     while(!game.isFinish()){
       const playerInTurn = game.getPlayerInTurn();
