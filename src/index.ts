@@ -111,17 +111,13 @@ export class full3Dboard extends Array<Floor>{
         let TR_diag = ''
         let BL_diag = ''
         let BR_diag = ''
-        for(let i = 0; i < this.length; i++){
+        
+        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
             TL_diag += this[i][i][i]
-        }
-        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
             TR_diag += this[i][i][j]
-        }
-        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
             BL_diag += this[i][j][j]
-        }
-        for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
             BR_diag += this[j][i][j]
+
         }
 
         if( TL_diag === winCondition ||
@@ -240,6 +236,23 @@ export class CPU_Player implements Player{
     }
 
     getPlay() : Coordinate3D{
+        /**
+         * 
+         *      Needed Functions:
+         *      
+         *      - `F() that assigns each spot a value depending on how close to the center it is. Basically a impra 
+         *              Dependencies: - stringMask & 
+         *      -   
+         *      
+         *      
+         *      Flow:
+         * 
+         *      - If you have a play that win's the game, play that move
+         *      - If your opponent have a play that win's the game, block that move
+         * 
+         */
+
+
         return {
             floor: 1,
             row: 1,
