@@ -237,26 +237,88 @@ export class CPU_Player implements Player{
     getPlay() : Coordinate3D{
         /**
          * 
-         *      Needed Functions:
+         *      Needed Functions:  General functions that reduce each f(board) and return the representation reduced value
          *      
-         *      - `F() that assigns each spot a value depending on how close to the center it is. Basically a impra 
-         *              Dependencies: - stringMask & 
-         *      -   
-         *      
+         *      - f(board) that assigns each spot a value depending on how close to the center it is. Basically a impra 
+         *              Dependencies: - stringMask & stringUnmask.
+         *              Must: ensure that in each floor the center is more valuable and that
+         *                    for each flor more closer to the 3D center it gets more value
+         *      - f(board) that returns a representation for each spot actual sumed ocurrence count in all lines
+         *              Dependecies: F() that check a spot and return its count using vector3 directions  
+         * 
+         *              It is better to just use a fuction that count each line and assign it to a obj?
+         *              or
+         *              asign each spot a value and then reduce the whole thing?
+         * 
+         *      - eval()
+         *      - minmax() whit alpha-beta pruning and depth set
+         *      - A dictionary recording visited permutations of the board and 
+         *          inside minimax if that board its already visited just return the last evaluation
+         * 
+         *      - f() that recognize a winning move by playerInTurn and playerOpponent
+         *              Dependencies: each spot ocurrence count f(), using it if any spot has an ocurrence of 3 and its an empty spot, that spot it's a winning spot
+         * 
          *      
          *      Flow:
          * 
          *      - If you have a play that win's the game, play that move
          *      - If your opponent have a play that win's the game, block that move
+         *      - else run minmax
          * 
          */
 
+        this.mapCentreImportance()
 
         return {
             floor: Math.floor(Math.random()*this.parentGame.board.length),  // stupid ia
             row: Math.floor(Math.random()*this.parentGame.board.length),
             col: Math.floor(Math.random()*this.parentGame.board.length)
         }
+    }
+    private mapCentreImportance() {
+        const l = this.parentGame.board.length
+          let board = ''
+          for (let i = 0; i < l; i++) {
+            for (let j = 0; j < l; j++) {
+              for (let k = 0; k < l; k++) {
+                const distance = this.calculateManhattanDistance(i, j, k);
+                board += `_${Math.abs(distance - (l - 1))}`
+              }
+
+              if (j < l - 1) {
+                board += '/';
+              }
+            }
+            if (i < l - 1) {
+                board += '\n';
+              }
+          }
+
+          console.log(board.split('\n').map(row=>row.split('/').map(col=>col.split('_').filter(v=>v))));
+          
+          return board.split('\n').map(row=>row.split('/').map(col=>col.split('_').filter(v=>v))) // maybe unnecesary filter
+    }
+
+    private calculateManhattanDistance(x: number, y: number, z: number, n: number = this.parentGame.board.length) {
+        const center = {
+          x: Math.floor(n / 2),
+          y: Math.floor(n / 2),
+          z: Math.floor(n / 2),
+        };
+    
+        // Adjust center for even n
+        if (n % 2 === 0) {
+          center.x -= 1;
+          center.y -= 1;
+          center.z -= 1;
+          
+          // Reflect coordinates
+          x = Math.min(x, n - 1 - x);
+          y = Math.min(y, n - 1 - y);
+          z = Math.min(z, n - 1 - z);
+        }
+    
+        return Math.abs(z - center.z) + Math.abs(y - center.y) + Math.abs(x - center.x);
     }
 }
 

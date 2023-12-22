@@ -12,15 +12,17 @@ export class CLI_Game extends Game {
 
 async function main() {
 
-    const game = new CLI_Game(3); // Human vs Human game
+    const game = new CLI_Game(4); // Human vs Human game
     game.setGameAsCPUOnly()
+
+    game.getPlayerInTurn().getPlay()
     
-    while(!game.isFinish()){
-      const playerInTurn = game.getPlayerInTurn();
-      const desiredPlay = await playerInTurn.getPlay()
-      playerInTurn.plays(desiredPlay);
-      game.checkWin(playerInTurn)
-    }
+    // while(!game.isFinish()){
+    //   const playerInTurn = game.getPlayerInTurn();
+    //   const desiredPlay = await playerInTurn.getPlay()
+    //   playerInTurn.plays(desiredPlay);
+    //   game.checkWin(playerInTurn)
+    // }
 
     console.log(`We have a winner!\nCongratulations ${game.winner?.name}`);
     

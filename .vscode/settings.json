@@ -7,5 +7,17 @@
         "**/.DS_Store": true,
         "**/Thumbs.db": true
     },
-    "hide-files.files": []
+    "hide-files.files": [],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Caballos",
+            "database": "hipodromo-de-chile",
+            "username": "martincito",
+            "password": "curantito1945"
+        }
+    ]
 }
