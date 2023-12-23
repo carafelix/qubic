@@ -15,28 +15,16 @@ async function main() {
     const game = new CLI_Game(3); // Human vs Human game
     game.setGameAsCPUOnly()
 
-    game.playerOne.plays({
-      row: 1,
-      col: 1,
-      floor: 1,
-    })
-    
-    game.checkWin()
-    
+    while(!game.isFinish()){
+      const playerInTurn = game.getPlayerInTurn();
+      const desiredPlay = await playerInTurn.getPlay()
+      playerInTurn.plays(desiredPlay);
+      if(playerInTurn !== game.getPlayerInTurn()){ // meaning it was a valid play
+        game.checkWin()
+      }
+    }
 
-    // game.getPlayerInTurn().getPlay()
-
-
-    // while(!game.isFinish()){
-    //   const playerInTurn = game.getPlayerInTurn();
-    //   const desiredPlay = await playerInTurn.getPlay()
-    //   playerInTurn.plays(desiredPlay);
-    //   if(playerInTurn !== game.getPlayerInTurn()){ // meaning it was a valid play
-    //     game.checkWin(playerInTurn.marker)
-    //   }
-    // }
-
-    console.log(`We have a winner!\nCongratulations ${game.winner?.name}`);
+    console.log(`We have a winner!\nCongratulations ${(game.playerOne === game.getPlayerInTurn()) ? game.playerTwo.name : game.playerOne.name}`);
     
 }
 

@@ -239,10 +239,9 @@ export class CPU_Player implements Player{
 export class Game{
     public board : full3Dboard // must be private on production!
     private playerInTurn : Player
-    private finish : boolean
+    public finish : boolean // must be private
     public playerOne : Player
     public playerTwo : Player
-    public winner? : Player
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
@@ -304,7 +303,7 @@ export class Game{
     }
 
     updateUI = () => {
-        // this.displayInLog()
+        this.displayInLog()
     }
 
     private switchPlayerTurn = () => {
@@ -324,12 +323,12 @@ export class Game{
      * better try that and check the memory consumption
      * 
      * 
-     * @param player marker
-     * @param state if not provided any state it just gets
-     * @param spot 
+     * @param state if not provided it is set to actual game state. 
+     * @param spot  if its provided player is inferred from the checked spot since it should only be called after a play 
+     *  
      */
 
-    checkWin = (state? : string, spot? : Coordinate3D) => { // player is inferred from the checked spot since it should only be called after played
+    checkTerminalState = (state? : string, spot? : Coordinate3D) => { // must decouple FOR SURE
         const l = this.board.length
         const boardState = (state || this.board.stringMask())
         if(!spot){
@@ -370,10 +369,10 @@ export class Game{
             }
 
             if(!boardState.includes('.')){
-                return 0 // Its a tie
+                return true // Its a tie MUST BE DECOUPLE
             }
 
-            return false // Still on Going
+            return false // still going
 
         } else {
             // check only the provided spot
@@ -396,11 +395,18 @@ export class Game{
 
             if(highestLine.length === this.board.length){
                 return true
-            } else return false
-            
-
+            } else return false // still going
         }
     }
+
+
+    checkWin = () => {
+        const isTerminal = this.checkTerminalState()
+        if(isTerminal){
+            this.finish = true
+        }
+    }
+
 
     addVectors(a : Coordinate3D, b : Coordinate3D){
 
