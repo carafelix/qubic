@@ -1,189 +1,50 @@
 import { select , input } from "@inquirer/prompts"
 
+
+    // x would be the maximaxing. wants Infinity
+    // o would be the minimizing. wants -Infinity
+
+export class stringMask{
+
+}
+
 export class full3Dboard extends Array<Array<Array<string>>>{
 
     area = this.length * this.length
 
-    constructor(size : number){
-        const board = [];
 
-        for (let i = 0; i < size; i++) {
-            const floor = [];
+    // a lot of masking unmasking goes because of the way the functions are around this object.
+    // if instead integrity is checked with a stringMask class it would not be necesarry to be masking and unmasking that much
+    // I think any game state that is not stringified should be created using the new full3Dboard
+    // Right now the board its composed at that lvl. Moving it out at the Game lvl would allow it to be used elsewhere
 
-            for (let j = 0; j < size; j++) {
-            const row = [];
-
-            for (let k = 0; k < size; k++) {
-                row.push('.');
-            }
-            floor.push(row);
-            }
-            board.push(floor);
-        }
-        super(...board) 
-    }
-
-    /**
-     * @param playerMarker player who is being checked if wins or almost wins
-     * @param sizeCheck if === `this.length` means it's checking for a Win. 
-     *                  `this.length - n` means it's checking for consecutive marks of n.
-     *                  It does not account for ex: xx.x or x.xx if gridSize is 4 and sizeCheck is 3
-     * 
-     * @returns boolean and position in the form of : {flor,row,col}
-     */
-
-    // check3D_TpotoBotVertical_Win = (playerMarker : Marker, mask = this.stringMask(), sizeCheck = this.length) => {
-    //     const verticalStraights : string[] = new Array(this.area).fill('')
-
-    //     for(let i = 0; i < mask.length; i++){
-    //         verticalStraights[i%this.area] += mask[i];
-    //     }
-        
-    //     const winCondition = new RegExp(`(?:${playerMarker}.*?){${sizeCheck},}`)
-    //     let meetsWinCondition = false;
-
-    //     let foundInIndex : undefined | Coordinate2D; // 2Dcoord since straight vertical goes trough floors
-
-    //     for(let i = 0; i < verticalStraights.length; i++){
-    //        if(winCondition.test(verticalStraights[i])){
-    //         meetsWinCondition = true;
-    //         // foundInIndex = {row: Math.floor(i / this.length) , col: i % this.length };
-    //        }
-    //     }
-
-    //     return meetsWinCondition
-        
-    // }
-
-    // check3D_row_Win = (playerMarker : Marker, mask = this.stringMask(), sizeCheck = this.length) => { 
-
-    //     // compose a regex for Left to Right row's and vice-versa
-
-    //     let L_row = '';
-    //     let R_row = '';
-    //     for(let i = 0, j = 1; i < sizeCheck - 1; i++, j++){
-    //         L_row += '.'.repeat(i) + playerMarker + '.'.repeat(this.area - j) 
-    //         R_row += '.'.repeat(sizeCheck - j) + playerMarker + '.'.repeat(this.area - (sizeCheck - j+1))
-    //     }
-
-    //     const L_regEx = new RegExp(L_row + '.'.repeat(sizeCheck - 1 ) + playerMarker, 'gm')
-    //     const R_regEx = new RegExp(R_row + playerMarker, 'gm')
-
-    //     return (L_regEx.test(mask) || R_regEx.test(mask))
-
-    // }
-
-    // check3D_col_Win = (playerMarker : Marker, mask = this.stringMask(), sizeCheck = this.length) => {
-    //      // compose a regex for Top to Bottom columns and vice-versa
-
-    //      let T_row = '';
-    //      let B_row = '';
-    //      for(let i = 0, j = this.length - 1; i < sizeCheck; i++, j--){
-    //          T_row += '.'.repeat(this.length * i) + playerMarker + '.'.repeat((this.area - (this.length * i)) - 1) 
-    //          B_row += '.'.repeat(this.length * j) + playerMarker + '.'.repeat((this.length * (i+1)) - 1)
-    //     }
- 
-    //      const T_regEx = new RegExp(T_row.slice(0, mask.length - (this.length - 1)), 'gm')
-    //      const B_regEx = new RegExp(B_row.replace(/\./g,' ').trim().replace(/\s/g, '.'), 'gm')
- 
-    //      return (T_regEx.test(mask) || B_regEx.test(mask))
- 
-    // }
-
-    // check3D_OpositeCorners_DiagonalWin = (playerMarker : Marker, mask = this.stringMask(), sizeCheck = this.length) => {
-
-    //     const winCondition =  playerMarker.repeat(sizeCheck);
-        
-    //     let TL_diag = ''
-    //     let TR_diag = ''
-    //     let BL_diag = ''
-    //     let BR_diag = ''
-        
-    //     for(let i = 0, j = this.length - 1; i < this.length; i++, j--){
-    //         TL_diag += this[i][i][i]
-    //         TR_diag += this[i][i][j]
-    //         BL_diag += this[i][j][j]
-    //         BR_diag += this[j][i][j]
-    //     }
-
-    //     if( TL_diag === winCondition ||
-    //         TR_diag === winCondition ||
-    //         BR_diag === winCondition ||
-    //         BL_diag === winCondition   ){
-
-    //             return true;
-    //         }
-    //     return false;
-        
-    // }
-    stringMask = () => {
+    stringMask = (state? : Array<Array<Array<string>>>) => {
+        const boardState = (state || this)
         const s = []
-        for(let i = 0; i < this.length; i++){
-            s.push(this[i].join('-').replace(/,/g, ''))
+        for(let i = 0; i < boardState.length; i++){
+            s.push(boardState[i].join('-').replace(/,/g, ''))
         }
         return s.join('|').replace(/,/g, '')
     }
-    stringUnmask = (maskedBoard : string) => {
+
+    stringUnmask = (maskedBoard : string | undefined) => {
+        if(!maskedBoard) return false;
         return maskedBoard.split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
     }
 
-    // checkAllFloors = (playerMarker : Marker, state : string) => {
-    //     let win;
-    //     const floors = state.
-    //     for(const floor of f){
-    //         if (floor.checkRowWin(playerMarker, state) ||
-    //         floor.checkColumnWin(playerMarker, state) ||
-    //         floor.checkLeftDiagonalWin(playerMarker, state) ||
-    //         floor.checkRightDiagonalWin(playerMarker, state)){
-    //             win = true
-    //         }
-    //     }
-    //     return win
-    // }
 
-    // laConchetumare = () => {
-    //     checkRowWin = (playerMarker : Marker, state = this.stringFloorMask()) => {
-    //         return new RegExp(`${playerMarker.repeat(this.length)}`).test(state)
-    //     }
+    getSpot = (coord : Coordinate3D, state? : string) => {
+        if(state){
+            const boardState = this.stringUnmask(state)
+            if(!boardState) throw 'Something is wrong dude at getting the spot dude';
+
+           return boardState[coord.floor][coord.row][coord.col]
+        }
+        return this[coord.floor][coord.row][coord.col]
+    }
     
-    //     checkColumnWin = (playerMarker : Marker, state = this.stringFloorMask()) => {
-    //         const pattern = (playerMarker + '.'.repeat(this.length)).repeat(this.length-1) + playerMarker
-    //         return new RegExp(pattern).test(state)
-    //     }
-    
-    //     checkLeftDiagonalWin = (playerMarker : Marker, state = this.stringFloorMask()) => {
-    //         const pattern = (playerMarker + '.'.repeat(this.length+1)).repeat(this.length-1) + playerMarker
-    //         return new RegExp(pattern).test(state)
-    //     }
-    
-    //     checkRightDiagonalWin = (playerMarker : Marker, state = this.stringFloorMask()) => {
-    //         const pattern = (playerMarker + '.'.repeat(this.length-1)).repeat(this.length-1) + playerMarker
-    //         return new RegExp(pattern).test(state)
-    //     }
-    
-    //     stringFloorMask = () => {
-    //         return this.join('-').replace(/,/g, '')
-    //     }
-    // }
 };
 
-type Marker = 'x' | 'o';
-interface Coordinate2D {
-    row: number,
-    col: number
-}
-interface Coordinate3D extends Coordinate2D {
-    floor: number
-}
-
-
-interface Player{
-    marker : Marker
-    parentGame : Game
-    name : string
-    plays(desiredPlay : Coordinate3D): void
-    getPlay() : Coordinate3D | Promise<Coordinate3D>
-}
 
 export class HumanPlayer implements Player{
 
@@ -289,9 +150,6 @@ export class CPU_Player implements Player{
          *      - else run minmax
          * 
          */
-        
-        this.asumeTurnBasedOnGameState(this.parentGame.board.stringMask())
-        
 
         return {
             floor: Math.floor(Math.random()*this.parentGame.board.length),  // stupid ia
@@ -316,8 +174,7 @@ export class CPU_Player implements Player{
     }
 
     private eval( state : string ){  // state should be converted to a game board when vector checks are implemented
-        // x would be the maximaxing
-        // o would be the minimizing
+       
 
         // if(this.parentGame.checkWin('x', state))
     }
@@ -393,7 +250,24 @@ export class Game{
     ){
         if(this.gridSize < 3) this.gridSize = 3;
         this.finish = false;
-        this.board = new full3Dboard(gridSize)
+
+        const initialBoard = [];
+
+                for (let i = 0; i < gridSize; i++) {
+                    const floor = [];
+
+                    for (let j = 0; j < gridSize; j++) {
+                    const row = [];
+
+                    for (let k = 0; k < gridSize; k++) {
+                        row.push('.');
+                    }
+                    floor.push(row);
+                    }
+                    initialBoard.push(floor);
+                }
+
+        this.board = new full3Dboard(...initialBoard)
 
         this.playerOne = new HumanPlayer('x', this, 'p1')
         this.playerTwo = new HumanPlayer('o', this, 'p2')
@@ -412,9 +286,6 @@ export class Game{
         return this
     }
 
-    getSpotOnBoard = (coord : Coordinate3D) => {
-        return this.board[coord.floor][coord.row][coord.col]
-    }
 
     turnPlayHandler = (played : Coordinate3D, from : Player) => {
         if(this.playerInTurn === from && this.checkPlaySpotIsEmpty(played)){
@@ -446,44 +317,181 @@ export class Game{
         }
     }
 
-    checkWin = (player : Marker, state = this.board.stringMask()) => {
+    /**
+     * 
+     * Mask and unMask should be standarized. I think the best way is to use the constructor of full3DBoard and always use this
+     * and pass states as full board objects, instead of strings that gets converted over and over
+     * better try that and check the memory consumption
+     * 
+     * 
+     * @param player marker
+     * @param state if not provided any state it just gets
+     * @param spot 
+     */
 
-        // for n = 50 it throws `Regular expression too large` so all this must be changed
-        
-        // if (
-        //     this.board.check3D_OpositeCorners_DiagonalWin(player, state) ||
-        //     this.board.check3D_TpotoBotVertical_Win(player, state) ||
-        //     this.board.check3D_col_Win(player, state) ||
-        //     this.board.check3D_row_Win(player, state) ||
-        //     this.board.checkAllFloors(player, state)
-        // ){
-        //     this.finish = true;
-        //     this.winner = p
-        // }
+    checkWin = (state? : string, spot? : Coordinate3D) => { // player is inferred from the checked spot since it should only be called after played
+        const l = this.board.length
+        const boardState = (state || this.board.stringMask())
+        if(!spot){
+            // check all spots
+            // just one floor its neeeded to be checked for all floors to be checked, since the check direction function goes trough floors
+            for(let i = 0; i < l; i++){
+                for(let j = 0; j < l; j++){
+                    const spotDirections = this.getAllLinesFromSpot({
+                        floor: Math.floor(l/2),
+                        row: i,
+                        col: j
+                    }, boardState)
+
+                    const highestXLine = spotDirections.map(line=>{
+                        return line.filter((v)=>{
+                            return v === 'x'
+                        })
+                    }).reduce((acc,v)=>{
+                        return (v.length >= acc.length) ? v : acc 
+                    }, [] )
+
+                    if(highestXLine.length === this.board.length){
+                        return Infinity
+                    }
+
+                    const highestOLine = spotDirections.map(line=>{
+                        return line.filter((v)=>{
+                            return v === 'o'
+                        })
+                    }).reduce((acc,v)=>{
+                        return (v.length >= acc.length) ? v : acc 
+                    }, [] )
+
+                    if(highestOLine.length === this.board.length){
+                        return -Infinity
+                    }
+                }
+            }
+
+            if(!boardState.includes('.')){
+                return 0 // Its a tie
+            }
+
+            return false // Still on Going
+
+        } else {
+            // check only the provided spot
+
+            const marker = boardState[spot.floor][spot.row][spot.col]
+
+            const spotDirections = this.getAllLinesFromSpot({
+                floor: spot.floor,
+                row: spot.row,
+                col: spot.col
+            }, boardState)
+
+            const highestLine = spotDirections.map(line=>{
+                return line.filter((v)=>{
+                    return v === marker
+                })
+            }).reduce((acc,v)=>{
+                return (v.length >= acc.length) ? v : acc 
+            }, [] )
+
+            if(highestLine.length === this.board.length){
+                return true
+            } else return false
+            
+
+        }
+    }
+
+    addVectors(a : Coordinate3D, b : Coordinate3D){
+
+        const resultingVector : Coordinate3D = {
+            col: a.col + b.col,
+            row: a.row + b.row,
+            floor: a.floor + b.floor,  
+        }
+
+        return resultingVector
+    }
+
+    substractVectors(a : Coordinate3D, b : Coordinate3D){
+
+        const resultingVector : Coordinate3D = {
+            col: a.col - b.col,
+            row: a.row - b.row,
+            floor: a.floor - b.floor,  
+        }
+
+        return resultingVector
     }
     
-    checkSpotCount = (position : Coordinate3D) => {
+    /**
+     * 
+     * Player agnostic direction check
+     * 
+     * @param spot
+     * @returns an Array of all directions, the resulting array must be postprocesed by another function to check if wins or anything
+     * 
+     */
+
+    getAllLinesFromSpot = ( spot : Coordinate3D, state? : string ) => {
+
+        const boardState = (this.board.stringUnmask(state)  ||  this.board)
     
         const checkDirections = [
-            [ 1,  0,  0 ],
-            [ 0,  1,  0 ],
-            [ 0,  0,  1 ],
-            [ 1,  1,  0 ],
-            [ 1, -1,  0 ],
-            [ 1,  0,  1 ],
-            [ 1,  0, -1 ],
-            [ 0,  1,  1 ],
-            [ 0,  1, -1 ],
-            [ 1,  1,  1 ],
-            [ 1,  1, -1 ],
-            [-1, -1,  1 ],
-            [-1,  1,  1 ],
+            { col: 1 , row:  0 , floor:  0 },
+            { col: 0 , row:  1 , floor:  0 },
+            { col: 0 , row:  0 , floor:  1 },
+            { col: 1 , row:  1 , floor:  0 },
+            { col: 1 , row: -1 , floor:  0 },
+            { col: 1 , row:  0 , floor:  1 },
+            { col: 1 , row:  0 , floor: -1 },
+            { col: 0 , row:  1 , floor:  1 },
+            { col: 0 , row:  1 , floor: -1 },
+            { col: 1 , row:  1 , floor:  1 },
+            { col: 1 , row:  1 , floor: -1 },
+            { col:-1 , row: -1 , floor:  1 },
+            { col:-1 , row:  1 , floor:  1 },
         ];
 
+        const counts = []
+
         for(const direction of checkDirections){
-            const forward = [position.floor , position.row , position.col]
-            const backward = [position.floor , position.row , position.col]
+            let forward  = {...spot}
+            let backward = {...spot}
+
+            const count = [this.board.getSpot(spot)]
+            
+            for(let i = 0; i < this.board.length - 1; i++ ){
+
+                forward  = this.addVectors(forward, direction);
+                backward = this.substractVectors(backward, direction);
+
+                if (
+                    forward.col >= 0 &&
+                    forward.col < this.board.length &&
+                    forward.row >= 0 &&
+                    forward.row < this.board.length &&
+                    forward.floor >= 0 &&
+                    forward.floor < this.board.length
+                ) {
+                    count.push(boardState[forward.floor][forward.row][forward.col]);
+                }
+    
+                if (
+                    backward.col >= 0 &&
+                    backward.col < this.board.length &&
+                    backward.row >= 0 &&
+                    backward.row < this.board.length &&
+                    backward.floor >= 0 &&
+                    backward.floor < this.board.length
+                ) {
+                    count.push(boardState[backward.floor][backward.row][backward.col]);
+                }
+            }
+            counts.push(count)
         }
+
+        return counts
 
     }
 
@@ -500,4 +508,42 @@ export class Game{
         this.playerTwo = new CPU_Player('o', this, 'cpu2');
         this.playerInTurn = this.playerOne
     }  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// interfaces
+
+
+
+type Marker = 'x' | 'o';
+interface Coordinate2D {
+    row: number,
+    col: number
+}
+interface Coordinate3D extends Coordinate2D {
+    floor: number
+}
+
+
+interface Player{
+    marker : Marker
+    parentGame : Game
+    name : string
+    plays(desiredPlay : Coordinate3D): void
+    getPlay() : Coordinate3D | Promise<Coordinate3D>
 }

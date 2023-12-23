@@ -15,7 +15,17 @@ async function main() {
     const game = new CLI_Game(3); // Human vs Human game
     game.setGameAsCPUOnly()
 
+    game.playerOne.plays({
+      row: 1,
+      col: 1,
+      floor: 1,
+    })
+    
+    game.checkWin()
+    
+
     // game.getPlayerInTurn().getPlay()
+
 
     // while(!game.isFinish()){
     //   const playerInTurn = game.getPlayerInTurn();
