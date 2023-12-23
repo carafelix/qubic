@@ -20,12 +20,12 @@ export class full3Dboard extends Array<Array<Array<string>>>{
     }
 
     stringUnmask = (mask : maskedBoard) => {
-        const board = mask.valueOf().split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
+        const board = mask.split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
         return new full3Dboard(...board)
     }
 
 
-    getSpot = (coord : Coordinate3D, state? : string) => {
+    getSpot = (coord : Coordinate3D, state? : maskedBoard) => {
         if(state){
             const boardState = this.stringUnmask(state)
             if(!boardState) throw 'Something is wrong dude at getting the spot dude';
@@ -150,11 +150,11 @@ export class CPU_Player implements Player{
         }
     }
 
-    private minMax(state : string, depth : number, maximizingPlayer : boolean){
+    private minMax(state : maskedBoard, depth : number, maximizingPlayer : boolean){
 
     }
 
-    private asumeTurnBasedOnGameState(state : string) : Marker{
+    private asumeTurnBasedOnGameState(state : maskedBoard) : Marker{
         const xes = state.split('').filter((v)=>v === 'x').length
         const os = state.split('').filter((v)=>v === 'o').length
 
@@ -165,7 +165,7 @@ export class CPU_Player implements Player{
         }
     }
 
-    private eval( state : string ){  // state should be converted to a game board when vector checks are implemented
+    private eval( state : maskedBoard ){  // state should be converted to a game board when vector checks are implemented
        
 
         // if(this.parentGame.checkWin('x', state))
@@ -319,7 +319,6 @@ export class Game{
      * @param spot  if its provided player is inferred from the checked spot since it should only be called after a play 
      *  
      */
-
     checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple FOR SURE
         const l = this.board.length
 
@@ -330,31 +329,19 @@ export class Game{
             // just one floor its neeeded to be checked for all floors to be checked, since the check direction function goes trough floors
             for(let i = 0; i < l; i++){
                 for(let j = 0; j < l; j++){
-                    const spotDirections = this.getAllLinesFromSpot({
+                    const currentSpotDirections = this.getAllLinesFromSpot({
                         floor: Math.floor(l/2),
                         row: i,
                         col: j
                     }, boardState)
 
-                    const highestXLine = spotDirections.map(line=>{
-                        return line.filter((v)=>{
-                            return v === 'x'
-                        })
-                    }).reduce((acc,v)=>{
-                        return (v.length >= acc.length) ? v : acc 
-                    }, [] )
+                    const highestXLine = this.reduceSDtoHighestOcurrences('x' , currentSpotDirections)
 
                     if(highestXLine.length === this.board.length){
                         return Infinity
                     }
 
-                    const highestOLine = spotDirections.map(line=>{
-                        return line.filter((v)=>{
-                            return v === 'o'
-                        })
-                    }).reduce((acc,v)=>{
-                        return (v.length >= acc.length) ? v : acc 
-                    }, [] )
+                    const highestOLine = this.reduceSDtoHighestOcurrences('o' , currentSpotDirections)
 
                     if(highestOLine.length === this.board.length){
                         return -Infinity
@@ -371,7 +358,7 @@ export class Game{
         } else {
             // check only the provided spot
 
-            const marker = boardState[spot.floor][spot.row][spot.col]
+            const marker = boardState[spot.floor][spot.row][spot.col] as Marker
 
             const spotDirections = this.getAllLinesFromSpot({
                 floor: spot.floor,
@@ -379,18 +366,22 @@ export class Game{
                 col: spot.col
             }, boardState)
 
-            const highestLine = spotDirections.map(line=>{
-                return line.filter((v)=>{
-                    return v === marker
-                })
-            }).reduce((acc,v)=>{
-                return (v.length >= acc.length) ? v : acc 
-            }, [] )
+            const highestLine = this.reduceSDtoHighestOcurrences( marker , spotDirections)
 
             if(highestLine.length === this.board.length){
                 return true
             } else return false // still going
         }
+    }
+
+    reduceSDtoHighestOcurrences = (player : Marker, spotDirections : spotLanes) => {
+        return spotDirections.map(line=>{
+            return line.filter((v)=>{
+                return v === player
+            })
+        }).reduce((acc,v)=>{
+            return (v.length >= acc.length) ? v : acc 
+        }, [] )
     }
 
 
@@ -433,7 +424,7 @@ export class Game{
      * 
      */
 
-    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) => {
+    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) : spotLanes => {
 
         let stateBoard : full3Dboard | undefined = undefined;
 
@@ -537,6 +528,7 @@ export class Game{
 
 
 type Marker = 'x' | 'o';
+type Spot = '.' | Marker
 interface Coordinate2D {
     row: number,
     col: number
@@ -554,7 +546,7 @@ interface Player{
     getPlay() : Coordinate3D | Promise<Coordinate3D>
 }
 
-interface spotDirections extends Array<Array<string>>{
+interface spotLanes extends Array<Array<string>>{
 
 }
 
