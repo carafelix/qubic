@@ -4,14 +4,10 @@ import { select , input } from "@inquirer/prompts"
     // x would be the maximaxing. wants Infinity
     // o would be the minimizing. wants -Infinity
 
-export class stringMask{
-
-}
 
 export class full3Dboard extends Array<Array<Array<string>>>{
 
     area = this.length * this.length
-
 
     // a lot of masking unmasking goes because of the way the functions are around this object.
     // if instead integrity is checked with a stringMask class it would not be necesarry to be masking and unmasking that much
@@ -20,16 +16,12 @@ export class full3Dboard extends Array<Array<Array<string>>>{
 
     stringMask = (state? : Array<Array<Array<string>>>) => {
         const boardState = (state || this)
-        const s = []
-        for(let i = 0; i < boardState.length; i++){
-            s.push(boardState[i].join('-').replace(/,/g, ''))
-        }
-        return s.join('|').replace(/,/g, '')
+        return new maskedBoard(boardState)
     }
 
-    stringUnmask = (maskedBoard : string | undefined) => {
-        if(!maskedBoard) return false;
-        return maskedBoard.split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
+    stringUnmask = (mask : maskedBoard) => {
+        const board = mask.valueOf().split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
+        return new full3Dboard(...board)
     }
 
 
@@ -328,9 +320,11 @@ export class Game{
      *  
      */
 
-    checkTerminalState = (state? : string, spot? : Coordinate3D) => { // must decouple FOR SURE
+    checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple FOR SURE
         const l = this.board.length
+
         const boardState = (state || this.board.stringMask())
+
         if(!spot){
             // check all spots
             // just one floor its neeeded to be checked for all floors to be checked, since the check direction function goes trough floors
@@ -439,9 +433,15 @@ export class Game{
      * 
      */
 
-    getAllLinesFromSpot = ( spot : Coordinate3D, state? : string ) => {
+    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) => {
 
-        const boardState = (this.board.stringUnmask(state)  ||  this.board)
+        let stateBoard : full3Dboard | undefined = undefined;
+
+       if(state){
+        stateBoard = this.board.stringUnmask(state)
+       }
+
+        const unMaskedBoardState = ( stateBoard ||  this.board)
     
         const checkDirections = [
             { col: 1 , row:  0 , floor:  0 },
@@ -480,7 +480,7 @@ export class Game{
                     forward.floor >= 0 &&
                     forward.floor < this.board.length
                 ) {
-                    count.push(boardState[forward.floor][forward.row][forward.col]);
+                    count.push(unMaskedBoardState[forward.floor][forward.row][forward.col]);
                 }
     
                 if (
@@ -491,7 +491,7 @@ export class Game{
                     backward.floor >= 0 &&
                     backward.floor < this.board.length
                 ) {
-                    count.push(boardState[backward.floor][backward.row][backward.col]);
+                    count.push(unMaskedBoardState[backward.floor][backward.row][backward.col]);
                 }
             }
             counts.push(count)
@@ -552,4 +552,21 @@ interface Player{
     name : string
     plays(desiredPlay : Coordinate3D): void
     getPlay() : Coordinate3D | Promise<Coordinate3D>
+}
+
+interface spotDirections extends Array<Array<string>>{
+
+}
+
+
+// conventions for maskedBoard
+
+class maskedBoard extends String {
+    constructor(boardState : Array<Array<Array<string>>>){
+        const str = []
+        for(let i = 0; i < boardState.length; i++){
+            str.push(boardState[i].join('-').replace(/,/g, ''))
+        }
+        super(str.join('|').replace(/,/g, ''))
+    }
 }

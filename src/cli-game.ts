@@ -23,7 +23,6 @@ async function main() {
         game.checkWin()
       }
     }
-
     console.log(`We have a winner!\nCongratulations ${(game.playerOne === game.getPlayerInTurn()) ? game.playerTwo.name : game.playerOne.name}`);
     
 }
