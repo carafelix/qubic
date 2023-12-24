@@ -388,7 +388,7 @@ export class Game{
 
     mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes) => {
         const opponentMarker = (player === 'x') ? 'o' : 'x';
-
+        
         return spotDirections.map((lane : string[]) => {
             const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
             if(lane.includes(opponentMarker)){
@@ -398,10 +398,11 @@ export class Game{
                     return Infinity
                 } else return -Infinity
             } else {
-                return laneCount
+                if(player === 'x'){
+                    return laneCount
+                } else return -laneCount
             }
-        }
-        ).reduce((acc,v)=>acc+v,0)
+        }).reduce((acc,v)=>acc+v,0)
     }
 
     tests = (player : Marker , spot : Coordinate3D) => {
