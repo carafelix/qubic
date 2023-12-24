@@ -326,25 +326,27 @@ export class Game{
 
         if(!spot){
             // check all spots
-            // just one floor its neeeded to be checked for all floors to be checked, since the check direction function goes trough floors
+            // Use REGEX for n < regexLimit and loops for over the RegexLimit, i think
             for(let i = 0; i < l; i++){
                 for(let j = 0; j < l; j++){
-                    const currentSpotDirections = this.getAllLinesFromSpot({
-                        floor: Math.floor(l/2),
-                        row: i,
-                        col: j
-                    }, boardState)
-
-                    const highestXLine = this.reduceSDtoHighestOcurrences('x' , currentSpotDirections)
-
-                    if(highestXLine.length === this.board.length){
-                        return Infinity
-                    }
-
-                    const highestOLine = this.reduceSDtoHighestOcurrences('o' , currentSpotDirections)
-
-                    if(highestOLine.length === this.board.length){
-                        return -Infinity
+                    for(let k = 0; k < l; k++){
+                        const currentSpotDirections = this.getAllLinesFromSpot({
+                            floor: i,
+                            row: j,
+                            col: k
+                        }, boardState)
+    
+                        const highestXLine = this.reduceSpotDirectionstoHighestOcurrences('x' , currentSpotDirections)
+    
+                        if(highestXLine.length === this.board.length){
+                            return Infinity
+                        }
+    
+                        const highestOLine = this.reduceSpotDirectionstoHighestOcurrences('o' , currentSpotDirections)
+    
+                        if(highestOLine.length === this.board.length){
+                            return -Infinity
+                        }
                     }
                 }
             }
@@ -366,7 +368,7 @@ export class Game{
                 col: spot.col
             }, boardState)
 
-            const highestLine = this.reduceSDtoHighestOcurrences( marker , spotDirections)
+            const highestLine = this.reduceSpotDirectionstoHighestOcurrences( marker , spotDirections)
 
             if(highestLine.length === this.board.length){
                 return true
@@ -374,7 +376,7 @@ export class Game{
         }
     }
 
-    reduceSDtoHighestOcurrences = (player : Marker, spotDirections : spotLanes) => {
+    reduceSpotDirectionstoHighestOcurrences = (player : Marker, spotDirections : spotLanes) => {
         return spotDirections.map(line=>{
             return line.filter((v)=>{
                 return v === player
@@ -382,6 +384,37 @@ export class Game{
         }).reduce((acc,v)=>{
             return (v.length >= acc.length) ? v : acc 
         }, [] )
+    }
+
+    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes) => {
+        const opponentMarker = (player === 'x') ? 'o' : 'x';
+
+        return spotDirections.map((lane : string[]) => {
+            const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
+            if(lane.includes(opponentMarker)){
+                return 0
+            } else if(laneCount === this.board.length){
+                if(player === 'x'){
+                    return Infinity
+                } else return -Infinity
+            } else {
+                return laneCount
+            }
+        }
+        ).reduce((acc,v)=>acc+v,0)
+    }
+
+    tests = (player : Marker , spot : Coordinate3D) => {
+        const boardState = (this.board.stringMask())
+        const spotDirections = this.getAllLinesFromSpot({
+            floor: spot.floor,
+            row: spot.row,
+            col: spot.col
+        }, boardState)
+
+        const v = this.mapReduceSpotDirectionsToValue(player, spotDirections)
+        console.log(this.mapReduceSpotDirectionsToValue(player, spotDirections))
+        
     }
 
 
