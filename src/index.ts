@@ -19,15 +19,78 @@ export class full3Dboard extends Array<Array<Array<string>>>{
         return new maskedBoard(boardState)
     }
 
-    stringUnmask = (mask : maskedBoard) => {
-        const board = mask.split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
-        return new full3Dboard(...board)
+    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) : spotLanes => {
+
+        let stateBoard : full3Dboard | undefined = undefined;
+
+       if(state){
+        stateBoard = state.stringUnmask()
+       }
+
+        const unMaskedBoardState = ( stateBoard ||  this)
+    
+        const checkDirections = [
+            { col: 1 , row:  0 , floor:  0 },
+            { col: 0 , row:  1 , floor:  0 },
+            { col: 0 , row:  0 , floor:  1 },
+            { col: 1 , row:  1 , floor:  0 },
+            { col: 1 , row: -1 , floor:  0 },
+            { col: 1 , row:  0 , floor:  1 },
+            { col: 1 , row:  0 , floor: -1 },
+            { col: 0 , row:  1 , floor:  1 },
+            { col: 0 , row:  1 , floor: -1 },
+            { col: 1 , row:  1 , floor:  1 },
+            { col: 1 , row:  1 , floor: -1 },
+            { col:-1 , row: -1 , floor:  1 },
+            { col:-1 , row:  1 , floor:  1 },
+        ];
+
+        const counts = []
+
+        for(const direction of checkDirections){
+            let forward  = {...spot}
+            let backward = {...spot}
+
+            const count = [this.getSpot(spot)]
+            
+            for(let i = 0; i < this.length - 1; i++ ){
+
+                forward  = addVectors(forward, direction);
+                backward = substractVectors(backward, direction);
+
+                if (
+                    forward.col >= 0 &&
+                    forward.col < this.length &&
+                    forward.row >= 0 &&
+                    forward.row < this.length &&
+                    forward.floor >= 0 &&
+                    forward.floor < this.length
+                ) {
+                    count.push(unMaskedBoardState[forward.floor][forward.row][forward.col]);
+                }
+    
+                if (
+                    backward.col >= 0 &&
+                    backward.col < this.length &&
+                    backward.row >= 0 &&
+                    backward.row < this.length &&
+                    backward.floor >= 0 &&
+                    backward.floor < this.length
+                ) {
+                    count.push(unMaskedBoardState[backward.floor][backward.row][backward.col]);
+                }
+            }
+            counts.push(count)
+        }
+
+        return counts
+
     }
 
 
     getSpot = (coord : Coordinate3D, state? : maskedBoard) => {
         if(state){
-            const boardState = this.stringUnmask(state)
+            const boardState = state.stringUnmask();
             if(!boardState) throw 'Something is wrong dude at getting the spot dude';
 
            return boardState[coord.floor][coord.row][coord.col]
@@ -105,6 +168,7 @@ export class CPU_Player implements Player{
     }
 
     getPlay() : Coordinate3D{
+
         /**
          * 
          *      Needed Functions:  General functions that reduce each f(board) and return the representation reduced value
@@ -143,22 +207,101 @@ export class CPU_Player implements Player{
          * 
          */
 
+
+        const maximizingPlayer = (this.marker === 'x') ? true : false
+
+        const miniMaxing = this.miniMax(this.parentGame.board.stringMask(), 3, -Infinity, Infinity) // clean pitty boolean
+        
+        const move = this.differenciateMoveFromTwoStates(this.parentGame.board.stringMask(),miniMaxing.move)
+
+        return move
+    }
+
+    private miniMax(state : maskedBoard, depth : number, alpha : number, beta: number){
+        const playerInTurn = this.getPlayerInTurnBasedOnGameState(state)
+        const isTerminal = this.parentGame.checkTerminalState(state)
+        const childStates = state.getAllChildStates(playerInTurn);
+        let bestMove = childStates[0]
+
+        if(isTerminal || depth <= 0){
+            return {
+                value: this.eval(state),
+                move: bestMove, // this is fake, should be null 
+            }
+        }
+
+        if(playerInTurn === 'x'){
+            let maxEval = -Infinity
+            for(const childState of childStates){
+                let currentEvaluation = this.miniMax(childState, depth - 1, alpha, beta);
+
+                if(currentEvaluation.value > maxEval){
+                    console.log(currentEvaluation.value)
+                    bestMove = childState
+                }
+                maxEval = Math.max(maxEval, currentEvaluation.value)
+
+                alpha = Math.max(alpha, currentEvaluation.value)
+                if(beta <= alpha) break;
+            }
+            return {
+                value: maxEval,
+                move: bestMove
+            }
+
+        } else {
+            let minEval = Infinity
+            for(const childState of childStates){
+                let currentEvaluation = this.miniMax(childState, depth - 1, alpha, beta)
+
+                if(currentEvaluation.value < minEval){
+                    bestMove = childState
+                }
+
+                minEval = Math.min(minEval, currentEvaluation.value)
+
+                beta = Math.min(alpha, currentEvaluation.value)
+                if(beta <= alpha) break;
+            }
+            return {
+                value: minEval,
+                move: bestMove
+            }
+        }
+    }
+    private differenciateMoveFromTwoStates(initialState : maskedBoard, nextState : maskedBoard) : Coordinate3D{
+        const b1 = initialState.stringUnmask()
+        const b2 = nextState.stringUnmask()
+        const l = b2.length
+        // quite sure this can be done whitout loops, just straight conversion from string to coord using this.board.length
+
+        for(let i = 0; i < l; i++){
+            for(let j = 0; j < l; j++){
+                for(let k = 0; k < l; k++){
+                    if(b1[i][j][k] !== b2[i][j][k]){
+                        return {
+                            floor: i,
+                            row: j,
+                            col: k
+                        }
+                    }
+                }
+            }
+        }
+
         return {
-            floor: Math.floor(Math.random()*this.parentGame.board.length),  // stupid ia
+            floor: Math.floor(Math.random()*this.parentGame.board.length),  // type gymnastics dumbbbb
             row: Math.floor(Math.random()*this.parentGame.board.length),
             col: Math.floor(Math.random()*this.parentGame.board.length)
         }
+        
     }
 
-    private minMax(state : maskedBoard, depth : number, maximizingPlayer : boolean){
+    private getPlayerInTurnBasedOnGameState(state : maskedBoard) : Marker{
+        const Xs = state.split('').filter((v)=>v === 'x').length
+        const Os = state.split('').filter((v)=>v === 'o').length
 
-    }
-
-    private asumeTurnBasedOnGameState(state : maskedBoard) : Marker{
-        const xes = state.split('').filter((v)=>v === 'x').length
-        const os = state.split('').filter((v)=>v === 'o').length
-
-        if(xes === os){
+        if(Xs === Os){
             return 'x'
         } else {
             return 'o'
@@ -166,15 +309,35 @@ export class CPU_Player implements Player{
     }
 
     private eval( state : maskedBoard ){  // state should be converted to a game board when vector checks are implemented
-       
+        const l = this.parentGame.board.length;
+        const nextTurnPlayer = this.getPlayerInTurnBasedOnGameState(state)
 
-        // if(this.parentGame.checkWin('x', state))
+        const boardXCount = []
+        const boardOcount = []
+       for(let i = 0; i < l; i++){
+        for(let j = 0; j < l; j++){
+            for(let k = 0; k < l; k++){
+                const currentSpotDirections = this.parentGame.board.getAllLinesFromSpot({
+                    floor: i,
+                    row: j,
+                    col: k
+                }, state)
+
+                boardXCount.push(this.parentGame.mapReduceSpotDirectionsToValue('x', currentSpotDirections, nextTurnPlayer))
+                boardOcount.push(this.parentGame.mapReduceSpotDirectionsToValue('o', currentSpotDirections, nextTurnPlayer))
+            }
+        }
     }
 
-    private getAllChildStates(){
+    const Xeval = boardXCount.reduce((acc,v)=>acc+v,0)
+    const Oeval = boardOcount.reduce((acc,v)=>acc+v,0)
 
-    }
+        if(!state.includes('.') && Xeval !== Infinity && Oeval !== -Infinity){ // && no one has won function
+            return 0
+        } else return Xeval + Oeval
     
+    }
+
     /**
      * this map is indeed not required. its only needed to calculate ManhatanDistance for each spot in runtime
      * would leave this here for the time being for ilustrating the usage
@@ -306,6 +469,7 @@ export class Game{
         for(const floor of this.board){
             console.log(floor.join('\n').replace(/,/g,' '),'\n')
         }
+        console.log('\n', '__________________', '\n')
     }
 
     /**
@@ -319,7 +483,7 @@ export class Game{
      * @param spot  if its provided player is inferred from the checked spot since it should only be called after a play 
      *  
      */
-    checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple FOR SURE
+    checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple into isTerminalTie, isTerminal returns just boolean
         const l = this.board.length
 
         const boardState = (state || this.board.stringMask())
@@ -330,7 +494,7 @@ export class Game{
             for(let i = 0; i < l; i++){
                 for(let j = 0; j < l; j++){
                     for(let k = 0; k < l; k++){
-                        const currentSpotDirections = this.getAllLinesFromSpot({
+                        const currentSpotDirections = this.board.getAllLinesFromSpot({
                             floor: i,
                             row: j,
                             col: k
@@ -362,7 +526,7 @@ export class Game{
 
             const marker = boardState[spot.floor][spot.row][spot.col] as Marker
 
-            const spotDirections = this.getAllLinesFromSpot({
+            const spotDirections = this.board.getAllLinesFromSpot({
                 floor: spot.floor,
                 row: spot.row,
                 col: spot.col
@@ -386,9 +550,9 @@ export class Game{
         }, [] )
     }
 
-    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes) => {
+    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes, nextTurnPlayer? : Marker) => {
         const opponentMarker = (player === 'x') ? 'o' : 'x';
-        
+
         return spotDirections.map((lane : string[]) => {
             const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
             if(lane.includes(opponentMarker)){
@@ -397,6 +561,13 @@ export class Game{
                 if(player === 'x'){
                     return Infinity
                 } else return -Infinity
+
+            //     // IDK if this would help minmax pick the obviously winning move, if implemented, it needs to work in conguntion with a isTerminated Function
+
+            // } else if (laneCount === this.board.length - 1 && nextTurnPlayer === player){
+            //     if(player === 'x'){
+            //         return Infinity
+            //     } else return -Infinity
             } else {
                 if(player === 'x'){
                     return laneCount
@@ -407,14 +578,13 @@ export class Game{
 
     tests = (player : Marker , spot : Coordinate3D) => {
         const boardState = (this.board.stringMask())
-        const spotDirections = this.getAllLinesFromSpot({
+        const spotDirections = this.board.getAllLinesFromSpot({
             floor: spot.floor,
             row: spot.row,
             col: spot.col
         }, boardState)
 
         const v = this.mapReduceSpotDirectionsToValue(player, spotDirections)
-        console.log(this.mapReduceSpotDirectionsToValue(player, spotDirections))
         
     }
 
@@ -427,27 +597,7 @@ export class Game{
     }
 
 
-    addVectors(a : Coordinate3D, b : Coordinate3D){
-
-        const resultingVector : Coordinate3D = {
-            col: a.col + b.col,
-            row: a.row + b.row,
-            floor: a.floor + b.floor,  
-        }
-
-        return resultingVector
-    }
-
-    substractVectors(a : Coordinate3D, b : Coordinate3D){
-
-        const resultingVector : Coordinate3D = {
-            col: a.col - b.col,
-            row: a.row - b.row,
-            floor: a.floor - b.floor,  
-        }
-
-        return resultingVector
-    }
+    
     
     /**
      * 
@@ -458,73 +608,7 @@ export class Game{
      * 
      */
 
-    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) : spotLanes => {
-
-        let stateBoard : full3Dboard | undefined = undefined;
-
-       if(state){
-        stateBoard = this.board.stringUnmask(state)
-       }
-
-        const unMaskedBoardState = ( stateBoard ||  this.board)
     
-        const checkDirections = [
-            { col: 1 , row:  0 , floor:  0 },
-            { col: 0 , row:  1 , floor:  0 },
-            { col: 0 , row:  0 , floor:  1 },
-            { col: 1 , row:  1 , floor:  0 },
-            { col: 1 , row: -1 , floor:  0 },
-            { col: 1 , row:  0 , floor:  1 },
-            { col: 1 , row:  0 , floor: -1 },
-            { col: 0 , row:  1 , floor:  1 },
-            { col: 0 , row:  1 , floor: -1 },
-            { col: 1 , row:  1 , floor:  1 },
-            { col: 1 , row:  1 , floor: -1 },
-            { col:-1 , row: -1 , floor:  1 },
-            { col:-1 , row:  1 , floor:  1 },
-        ];
-
-        const counts = []
-
-        for(const direction of checkDirections){
-            let forward  = {...spot}
-            let backward = {...spot}
-
-            const count = [this.board.getSpot(spot)]
-            
-            for(let i = 0; i < this.board.length - 1; i++ ){
-
-                forward  = this.addVectors(forward, direction);
-                backward = this.substractVectors(backward, direction);
-
-                if (
-                    forward.col >= 0 &&
-                    forward.col < this.board.length &&
-                    forward.row >= 0 &&
-                    forward.row < this.board.length &&
-                    forward.floor >= 0 &&
-                    forward.floor < this.board.length
-                ) {
-                    count.push(unMaskedBoardState[forward.floor][forward.row][forward.col]);
-                }
-    
-                if (
-                    backward.col >= 0 &&
-                    backward.col < this.board.length &&
-                    backward.row >= 0 &&
-                    backward.row < this.board.length &&
-                    backward.floor >= 0 &&
-                    backward.floor < this.board.length
-                ) {
-                    count.push(unMaskedBoardState[backward.floor][backward.row][backward.col]);
-                }
-            }
-            counts.push(count)
-        }
-
-        return counts
-
-    }
 
     isFinish = () => {
         return this.finish
@@ -595,4 +679,50 @@ class maskedBoard extends String {
         }
         super(str.join('|').replace(/,/g, ''))
     }
+
+    stringUnmask = () => {
+        const board = this.split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
+        return new full3Dboard(...board)
+    }
+
+
+    getAllChildStates = (player : Marker) => { 
+        const states = [] // must be maskedBoard[] but I think maskedBoard needs to be changed to Array
+        
+        for(let i = 0; i < this.length; i++){
+            if(this[i] === '.'){
+                const child = this.split('')
+                child[i] = player
+
+                // THIS LINE OF CODE MUST GO AWAY GOOD LORD... 
+                const state = child.join().replace(/,/g , '').split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
+
+                states.push(new maskedBoard(state))
+            }
+        }
+        return states
+    }
+}
+
+
+function addVectors(a : Coordinate3D, b : Coordinate3D){
+
+    const resultingVector : Coordinate3D = {
+        col: a.col + b.col,
+        row: a.row + b.row,
+        floor: a.floor + b.floor,  
+    }
+
+    return resultingVector
+}
+
+function substractVectors(a : Coordinate3D, b : Coordinate3D){
+
+    const resultingVector : Coordinate3D = {
+        col: a.col - b.col,
+        row: a.row - b.row,
+        floor: a.floor - b.floor,  
+    }
+
+    return resultingVector
 }

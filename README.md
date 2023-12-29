@@ -9,3 +9,7 @@ objectives: use IIFE and module patterns
 
 ## Test's
 - run ```npm run test-board```
+
+## to-do
+
+- must refactor all the state transfer logic to just checking current full3Dboard and pass states as an array, i think
