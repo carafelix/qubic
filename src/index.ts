@@ -98,6 +98,41 @@ export class full3Dboard extends Array<Array<Array<string>>>{
         return this[coord.floor][coord.row][coord.col]
     }
     
+    reduceSpotDirectionstoHighestOcurrences = (player : Marker, spotDirections : spotLanes) => {
+        return spotDirections.map(line=>{
+            return line.filter((v)=>{
+                return v === player
+            })
+        }).reduce((acc,v)=>{
+            return (v.length >= acc.length) ? v : acc 
+        }, [] )
+    }
+
+    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes, nextTurnPlayer? : Marker) => {
+        const opponentMarker = (player === 'x') ? 'o' : 'x';
+
+        return spotDirections.map((lane : string[]) => {
+            const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
+            if(lane.includes(opponentMarker)){
+                return 0
+            } else if(laneCount === this.length){
+                if(player === 'x'){
+                    return Infinity
+                } else return -Infinity
+
+            //     // IDK if this would help minmax pick the obviously winning move, if implemented, it needs to work in conguntion with a isTerminated Function
+
+            // } else if (laneCount === this.board.length - 1 && nextTurnPlayer === player){
+            //     if(player === 'x'){
+            //         return Infinity
+            //     } else return -Infinity
+            } else {
+                if(player === 'x'){
+                    return laneCount
+                } else return -laneCount
+            }
+        }).reduce((acc,v)=>acc+v,0)
+    }
 };
 
 
@@ -190,7 +225,7 @@ export class CPU_Player implements Player{
          *              or
          *              asign each spot a value and then reduce the whole thing?
          * 
-         *      - eval()
+         *      - evaluateState()
          *      - minmax() whit alpha-beta pruning and depth set
          *      - A dictionary recording visited states of the board and 
          *          inside minimax if that board its already visited just return the last evaluation
@@ -208,13 +243,53 @@ export class CPU_Player implements Player{
          */
 
 
-        const maximizingPlayer = (this.marker === 'x') ? true : false
+        const winningMove = this.playerWinningMove();
+        const opponentAboutToWin = this.opponentWinningMove();
+        if(winningMove){
+            return winningMove
+        } 
+        // else if(opponentAboutToWin){
+        //     return opponentAboutToWin
+        // }
 
-        const miniMaxing = this.miniMax(this.parentGame.board.stringMask(), 3, -Infinity, Infinity) // clean pitty boolean
+        // const miniMaxing = this.miniMax(this.parentGame.board.stringMask(), 1, -Infinity, Infinity) // clean pitty boolean
         
-        const move = this.differenciateMoveFromTwoStates(this.parentGame.board.stringMask(),miniMaxing.move)
+        // const move = this.differenciateMoveFromTwoStates(this.parentGame.board.stringMask(),miniMaxing.move)
 
-        return move
+        return this.to3Dcoord(
+            Math.floor(Math.random()*this.parentGame.board.length),
+            Math.floor(Math.random()*this.parentGame.board.length),
+            Math.floor(Math.random()*this.parentGame.board.length))
+    }
+
+    private to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
+        return {
+            floor,
+            row,
+            col
+        }
+    }
+    private playerWinningMove(){
+        const board = this.parentGame.board
+        const mask = board.stringMask();
+        const childStates = mask.getAllChildStates(this.marker)
+        
+        for(const position of childStates){
+            const boardNewState = position.stringUnmask();
+            const tentativeMove = this.differenciateMoveFromTwoStates(mask,position)
+        }
+        
+        
+        return this.to3Dcoord(
+            Math.floor(Math.random()*this.parentGame.board.length),
+            Math.floor(Math.random()*this.parentGame.board.length),
+            Math.floor(Math.random()*this.parentGame.board.length))
+        
+    }
+
+    private opponentWinningMove(){
+        const board = this.parentGame.board
+        const opponentMarker = (this.marker === 'x') ? 'o' : 'x';
     }
 
     private miniMax(state : maskedBoard, depth : number, alpha : number, beta: number){
@@ -225,7 +300,7 @@ export class CPU_Player implements Player{
 
         if(isTerminal || depth <= 0){
             return {
-                value: this.eval(state),
+                value: this.evaluateState(state),
                 move: bestMove, // this is fake, should be null 
             }
         }
@@ -236,7 +311,6 @@ export class CPU_Player implements Player{
                 let currentEvaluation = this.miniMax(childState, depth - 1, alpha, beta);
 
                 if(currentEvaluation.value > maxEval){
-                    console.log(currentEvaluation.value)
                     bestMove = childState
                 }
                 maxEval = Math.max(maxEval, currentEvaluation.value)
@@ -253,7 +327,7 @@ export class CPU_Player implements Player{
             let minEval = Infinity
             for(const childState of childStates){
                 let currentEvaluation = this.miniMax(childState, depth - 1, alpha, beta)
-
+                
                 if(currentEvaluation.value < minEval){
                     bestMove = childState
                 }
@@ -270,30 +344,33 @@ export class CPU_Player implements Player{
         }
     }
     private differenciateMoveFromTwoStates(initialState : maskedBoard, nextState : maskedBoard) : Coordinate3D{
-        const b1 = initialState.stringUnmask()
-        const b2 = nextState.stringUnmask()
-        const l = b2.length
-        // quite sure this can be done whitout loops, just straight conversion from string to coord using this.board.length
-
-        for(let i = 0; i < l; i++){
-            for(let j = 0; j < l; j++){
-                for(let k = 0; k < l; k++){
-                    if(b1[i][j][k] !== b2[i][j][k]){
-                        return {
-                            floor: i,
-                            row: j,
-                            col: k
-                        }
-                    }
-                }
+        const l = this.parentGame.board.length
+        
+        const cleanMask = initialState.replace(/,|\||-/g, '')
+        const cleanMask2 = nextState.replace(/,|\||-/g, '')
+        let col = 0
+        for(; col < cleanMask.length; col++){
+            if(cleanMask[col] !== cleanMask2[col]){
+                break
+            }
+        }
+        let floor = 0;
+        let row = 0;
+        for(let i = 0; i < initialState.length ; i++){
+            if(initialState[i] !== nextState[i]){
+                break
+            } else if (initialState[i] === '-'){
+                row++
+            } else if (initialState[i] == '|'){
+                floor++
             }
         }
 
-        return {
-            floor: Math.floor(Math.random()*this.parentGame.board.length),  // type gymnastics dumbbbb
-            row: Math.floor(Math.random()*this.parentGame.board.length),
-            col: Math.floor(Math.random()*this.parentGame.board.length)
-        }
+        console.log(this.to3Dcoord(floor, row % l, col % l));
+        
+
+        return this.to3Dcoord(floor, row % l, col % l)
+
         
     }
 
@@ -308,7 +385,7 @@ export class CPU_Player implements Player{
         }
     }
 
-    private eval( state : maskedBoard ){  // state should be converted to a game board when vector checks are implemented
+    private evaluateState( state : maskedBoard ){  // state should be converted to a game board when vector checks are implemented
         const l = this.parentGame.board.length;
         const nextTurnPlayer = this.getPlayerInTurnBasedOnGameState(state)
 
@@ -323,15 +400,15 @@ export class CPU_Player implements Player{
                     col: k
                 }, state)
 
-                boardXCount.push(this.parentGame.mapReduceSpotDirectionsToValue('x', currentSpotDirections, nextTurnPlayer))
-                boardOcount.push(this.parentGame.mapReduceSpotDirectionsToValue('o', currentSpotDirections, nextTurnPlayer))
+                boardXCount.push(this.parentGame.board.mapReduceSpotDirectionsToValue('x', currentSpotDirections, nextTurnPlayer))
+                boardOcount.push(this.parentGame.board.mapReduceSpotDirectionsToValue('o', currentSpotDirections, nextTurnPlayer))
             }
         }
     }
 
     const Xeval = boardXCount.reduce((acc,v)=>acc+v,0)
     const Oeval = boardOcount.reduce((acc,v)=>acc+v,0)
-
+    
         if(!state.includes('.') && Xeval !== Infinity && Oeval !== -Infinity){ // && no one has won function
             return 0
         } else return Xeval + Oeval
@@ -500,13 +577,13 @@ export class Game{
                             col: k
                         }, boardState)
     
-                        const highestXLine = this.reduceSpotDirectionstoHighestOcurrences('x' , currentSpotDirections)
+                        const highestXLine = this.board.reduceSpotDirectionstoHighestOcurrences('x' , currentSpotDirections)
     
                         if(highestXLine.length === this.board.length){
                             return Infinity
                         }
     
-                        const highestOLine = this.reduceSpotDirectionstoHighestOcurrences('o' , currentSpotDirections)
+                        const highestOLine = this.board.reduceSpotDirectionstoHighestOcurrences('o' , currentSpotDirections)
     
                         if(highestOLine.length === this.board.length){
                             return -Infinity
@@ -532,7 +609,7 @@ export class Game{
                 col: spot.col
             }, boardState)
 
-            const highestLine = this.reduceSpotDirectionstoHighestOcurrences( marker , spotDirections)
+            const highestLine = this.board.reduceSpotDirectionstoHighestOcurrences( marker , spotDirections)
 
             if(highestLine.length === this.board.length){
                 return true
@@ -540,53 +617,18 @@ export class Game{
         }
     }
 
-    reduceSpotDirectionstoHighestOcurrences = (player : Marker, spotDirections : spotLanes) => {
-        return spotDirections.map(line=>{
-            return line.filter((v)=>{
-                return v === player
-            })
-        }).reduce((acc,v)=>{
-            return (v.length >= acc.length) ? v : acc 
-        }, [] )
-    }
 
-    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes, nextTurnPlayer? : Marker) => {
-        const opponentMarker = (player === 'x') ? 'o' : 'x';
+    // tests = (player : Marker , spot : Coordinate3D) => {
+    //     const boardState = (this.board.stringMask())
+    //     const spotDirections = this.board.getAllLinesFromSpot({
+    //         floor: spot.floor,
+    //         row: spot.row,
+    //         col: spot.col
+    //     }, boardState)
 
-        return spotDirections.map((lane : string[]) => {
-            const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
-            if(lane.includes(opponentMarker)){
-                return 0
-            } else if(laneCount === this.board.length){
-                if(player === 'x'){
-                    return Infinity
-                } else return -Infinity
-
-            //     // IDK if this would help minmax pick the obviously winning move, if implemented, it needs to work in conguntion with a isTerminated Function
-
-            // } else if (laneCount === this.board.length - 1 && nextTurnPlayer === player){
-            //     if(player === 'x'){
-            //         return Infinity
-            //     } else return -Infinity
-            } else {
-                if(player === 'x'){
-                    return laneCount
-                } else return -laneCount
-            }
-        }).reduce((acc,v)=>acc+v,0)
-    }
-
-    tests = (player : Marker , spot : Coordinate3D) => {
-        const boardState = (this.board.stringMask())
-        const spotDirections = this.board.getAllLinesFromSpot({
-            floor: spot.floor,
-            row: spot.row,
-            col: spot.col
-        }, boardState)
-
-        const v = this.mapReduceSpotDirectionsToValue(player, spotDirections)
+    //     const v = this.mapReduceSpotDirectionsToValue(player, spotDirections)
         
-    }
+    // }
 
 
     checkWin = () => {
