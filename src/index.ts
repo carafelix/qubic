@@ -419,7 +419,7 @@ export class Game{
     }
 
     updateUI = () => {
-        this.displayInLog()
+        // this.displayInLog()
     }
 
     private switchPlayerTurn = () => {

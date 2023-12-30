@@ -12,14 +12,12 @@ export class CLI_Game extends Game {
 
 async function main() {
 
-    const game = new CLI_Game(3, true); // Human vs CPU game
-    // game.setGameAsCPUOnly()
-
-
+    const game = new CLI_Game(20, true); // Human vs CPU game
+    game.setGameAsCPUOnly()
 
     while(!game.isFinish()){
 
-      // const start = new Date().getTime()
+      const start = new Date().getTime()
 
       const playerInTurn = game.getPlayerInTurn();
       const desiredPlay = await playerInTurn.getPlay()
@@ -30,7 +28,7 @@ async function main() {
       
 
 
-      // console.log(new Date().getTime() - start);
+      console.log(new Date().getTime() - start);
       
 
 
