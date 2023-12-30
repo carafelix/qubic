@@ -12,7 +12,7 @@ export class CLI_Game extends Game {
 
 async function main() {
 
-    const game = new CLI_Game(3, true); // Human vs Human game
+    const game = new CLI_Game(30, true); // Human vs CPU game
     // game.setGameAsCPUOnly()
 
 
