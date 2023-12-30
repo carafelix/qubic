@@ -269,6 +269,9 @@ export class CPU_Player implements Player{
                     for(const childState of allChildStates){
 
                         const tentativeMove = this.differenciateMoveFromTwoStates(actualState,childState)
+                        if(tentativeMove.floor < l/2 - 1 && tentativeMove.floor > l/2 + 1){
+                            continue
+                        }
                         const allLinesFromTentativeMove = this.parentGame.board.getAllLinesFromSpot(tentativeMove);
                         const currentMoveImpact = allLinesFromTentativeMove.reduce((acc,v)=>{
                             if(v.includes(opponentMarker)){
@@ -347,7 +350,6 @@ export class CPU_Player implements Player{
         }
         return this.to3Dcoord(floor, row % l, col % l)
     }
-
 }
 
 export class Game{
