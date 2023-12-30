@@ -197,46 +197,6 @@ export class CPU_Player implements Player{
 
     getPlay() : Coordinate3D{
 
-        /**
-         * 
-         *      Needed Functions:  General functions that reduce each f(board) and return the representation reduced value
-         *      
-         *      -  f(board) that assigns each spot a value depending on how close to the center it is. Basically a impra 
-         *              Dependencies: - stringMask & stringUnmask.
-         *              Must: ensure that in each floor the center is more valuable and that
-         *                    for each flor more closer to the 3D center it gets more value
-         *              
-         *          This can be also be updated based on state like the battleships heatmap
-         * 
-         *          JUST USE A MANHATAN DISTANCE ON RUNTIME
-         * 
-         * 
-         *      - f(board) that returns a representation for each spot actual sumed ocurrence count in all lines
-         *              Dependecies: F() that check a spot and return its count using vector3 directions  
-         * 
-         *              It is better to just use a fuction that count each line and assign it to a obj?
-         *              or
-         *              asign each spot a value and then reduce the whole thing?
-         * 
-         *      - evaluateState()
-         *      - minmax() whit alpha-beta pruning and depth set
-         *      - A dictionary recording visited states of the board and 
-         *          inside minimax if that board its already visited just return the last evaluation
-         * 
-         *      - f() that recognize a winning move by playerInTurn and playerOpponent
-         *              Dependencies: each spot ocurrence count f(), using it if any spot has an ocurrence of 3 and its an empty spot, that spot it's a winning spot
-         * 
-         *      
-         *      Flow:
-         * 
-         *      - If you have a play that win's the game, play that move
-         *      - If your opponent have a play that win's the game, block that move
-         *      - else run minmax
-         * 
-         */
-
-
-
         // greedy solution
 
         const winningMove = this.aboutToWinMove(this.marker)
@@ -327,7 +287,7 @@ export class CPU_Player implements Player{
             for(let y = 0; y < l; y++){
                 for(let x = 0; x < l; x++){
 
-                    if(this.parentGame.board.getSpot(this.to3Dcoord(z,y,x)) !== '.'){
+                    if(this.parentGame.board.getSpot(this.to3Dcoord(z,y,x)) !== '.,'){
                         continue
                     }
 
@@ -346,64 +306,10 @@ export class CPU_Player implements Player{
         return move
     }
 
-
     private mapReduceSpotDirectionsToValue = this.parentGame.board.mapReduceSpotDirectionsToValue;
 
     private isPlayerFirstMove(){
         return !(this.parentGame.board.stringMask().includes(this.marker))
-    }
-
-
-    private miniMax(state : maskedBoard, depth : number, alpha : number, beta: number){
-        const playerInTurn = this.getPlayerInTurnBasedOnGameState(state)
-        const isTerminal = this.parentGame.checkTerminalState(state)
-        const childStates = state.getAllChildStates(playerInTurn);
-        let bestMove = childStates[0]
-
-        if(isTerminal || depth <= 0){
-            return {
-                value: this.evaluateState(state),
-                move: bestMove, // this is fake, should be null 
-            }
-        }
-
-        if(playerInTurn === 'x'){
-            let maxEval = -Infinity
-            for(const childState of childStates){
-                let currentEvaluation = this.miniMax(childState, depth - 1, alpha, beta);
-
-                if(currentEvaluation.value > maxEval){
-                    bestMove = childState
-                }
-                maxEval = Math.max(maxEval, currentEvaluation.value)
-
-                alpha = Math.max(alpha, currentEvaluation.value)
-                if(beta <= alpha) break;
-            }
-            return {
-                value: maxEval,
-                move: bestMove
-            }
-
-        } else {
-            let minEval = Infinity
-            for(const childState of childStates){
-                let currentEvaluation = this.miniMax(childState, depth - 1, alpha, beta)
-                
-                if(currentEvaluation.value < minEval){
-                    bestMove = childState
-                }
-
-                minEval = Math.min(minEval, currentEvaluation.value)
-
-                beta = Math.min(alpha, currentEvaluation.value)
-                if(beta <= alpha) break;
-            }
-            return {
-                value: minEval,
-                move: bestMove
-            }
-        }
     }
 
     // does not check if both are the same state
@@ -434,98 +340,6 @@ export class CPU_Player implements Player{
         return this.to3Dcoord(floor, row % l, col % l)
     }
 
-    private getPlayerInTurnBasedOnGameState(state : maskedBoard) : Marker{
-        const Xs = state.split('').filter((v)=>v === 'x').length
-        const Os = state.split('').filter((v)=>v === 'o').length
-
-        if(Xs === Os){
-            return 'x'
-        } else {
-            return 'o'
-        }
-    }
-
-    private evaluateState( state : maskedBoard ){  // state should be converted to a game board when vector checks are implemented
-        const l = this.parentGame.board.length;
-        const nextTurnPlayer = this.getPlayerInTurnBasedOnGameState(state)
-
-        const boardXCount = []
-        const boardOcount = []
-       for(let z = 0; z < l; z++){
-        for(let y = 0; y < l; y++){
-            for(let x = 0; x < l; x++){
-                const currentSpotDirections = this.parentGame.board.getAllLinesFromSpot({
-                    floor: z,
-                    row: y,
-                    col: x
-                }, state)
-
-                boardXCount.push(this.parentGame.board.mapReduceSpotDirectionsToValue('x', currentSpotDirections, nextTurnPlayer))
-                boardOcount.push(this.parentGame.board.mapReduceSpotDirectionsToValue('o', currentSpotDirections, nextTurnPlayer))
-            }
-        }
-    }
-
-    const Xeval = boardXCount.reduce((acc,v)=>acc+v,0)
-    const Oeval = boardOcount.reduce((acc,v)=>acc+v,0)
-    
-        if(!state.includes('.') && Xeval !== Infinity && Oeval !== -Infinity){ // && no one has won function
-            return 0
-        } else return Xeval + Oeval
-    
-    }
-
-    /**
-     * this map is indeed not required. its only needed to calculate ManhatanDistance for each spot in runtime
-     * would leave this here for the time being for ilustrating the usage
-     * memory heap is huge
-     */
-
-    private mapCentreImportance() { 
-        const l = this.parentGame.board.length
-          let board = ''
-          for (let i = 0; i < l; i++) {
-            for (let j = 0; j < l; j++) {
-              for (let k = 0; k < l; k++) {
-                const distance = this.calculateManhattanDistance(i, j, k);
-                board += `_${Math.abs(distance - (l - 1))}`
-              }
-
-              if (j < l - 1) {
-                board += '/';
-              }
-            }
-            if (i < l - 1) {
-                board += '\n';
-              }
-          }
-
-          const mappedBoardToCenterImportance = board.split('\n').map(row=>row.split('/').map(col=>col.split('_').filter(v=>v)))
-          
-          return mappedBoardToCenterImportance
-    }
-
-    private calculateManhattanDistance(x: number, y: number, z: number, n: number = this.parentGame.board.length) {
-        const center = {
-          x: Math.floor(n / 2),
-          y: Math.floor(n / 2),
-          z: Math.floor(n / 2),
-        };
-    
-        // Adjust center for even n
-        if (n % 2 === 0) {
-          center.x -= 1;
-          center.y -= 1;
-          center.z -= 1;
-          
-          // Reflect coordinates
-          x = Math.min(x, n - 1 - x);
-          y = Math.min(y, n - 1 - y);
-          z = Math.min(z, n - 1 - z);
-        }
-    
-        return Math.abs(z - center.z) + Math.abs(y - center.y) + Math.abs(x - center.x);
-    }
 }
 
 export class Game{
@@ -620,6 +434,7 @@ export class Game{
      * @param spot  if its provided player is inferred from the checked spot since it should only be called after a play 
      *  
      */
+    
     checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple into isTerminalTie, isTerminal returns just boolean
         const l = this.board.length
 
@@ -678,39 +493,12 @@ export class Game{
     }
 
 
-    // tests = (player : Marker , spot : Coordinate3D) => {
-    //     const boardState = (this.board.stringMask())
-    //     const spotDirections = this.board.getAllLinesFromSpot({
-    //         floor: spot.floor,
-    //         row: spot.row,
-    //         col: spot.col
-    //     }, boardState)
-
-    //     const v = this.mapReduceSpotDirectionsToValue(player, spotDirections)
-        
-    // }
-
-
     checkWin = () => {
         const isTerminal = this.checkTerminalState()
         if(isTerminal){
             this.finish = true
         }
     }
-
-
-    
-    
-    /**
-     * 
-     * Player agnostic direction check
-     * 
-     * @param spot
-     * @returns an Array of all directions, the resulting array must be postprocesed by another function to check if wins or anything
-     * 
-     */
-
-    
 
     isFinish = () => {
         return this.finish
