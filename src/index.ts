@@ -358,6 +358,7 @@ export class Game{
     public finish : boolean // must be private
     public playerOne : Player
     public playerTwo : Player
+    public winner? : Player
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
@@ -507,6 +508,7 @@ export class Game{
         const isTerminal = this.checkTerminalState()
         if(isTerminal){
             this.finish = true
+            this.winner = (this.playerOne === this.getPlayerInTurn()) ? this.playerTwo : this.playerOne
         }
     }
 
@@ -563,6 +565,7 @@ interface Player{
     plays(desiredPlay : Coordinate3D): void
     getPlay() : Coordinate3D | Promise<Coordinate3D>
 }
+
 
 interface spotLanes extends Array<Array<string>>{
 
