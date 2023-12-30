@@ -1,16 +1,13 @@
 import { select , input } from "@inquirer/prompts"
 
 
-    // x would be the maximaxing. wants Infinity
-    // o would be the minimizing. wants -Infinity
-
 
 export class full3Dboard extends Array<Array<Array<string>>>{
 
     area = this.length * this.length
 
     // a lot of masking unmasking goes because of the way the functions are around this object.
-    // if instead integrity is checked with a stringMask class it would not be necesarry to be masking and unmasking that much
+    // if instead integrity is checked with a stringMask class it would not be necessary to be masking and unmasking that much
     // I think any game state that is not stringified should be created using the new full3Dboard
     // Right now the board its composed at that lvl. Moving it out at the Game lvl would allow it to be used elsewhere
 
@@ -98,7 +95,7 @@ export class full3Dboard extends Array<Array<Array<string>>>{
         return this[coord.floor][coord.row][coord.col]
     }
     
-    reduceSpotDirectionstoHighestOcurrences = (player : Marker, spotDirections : spotLanes) => {
+    reduceSpotDirectionstoHighestOccurrences = (player : Marker, spotDirections : spotLanes) => {
         return spotDirections.map(line=>{
             return line.filter((v)=>{
                 return v === player
@@ -236,8 +233,8 @@ export class CPU_Player implements Player{
                     }
 
                     const lanes = board.getAllLinesFromSpot(tentativeMove)
-                    const occurence = board.reduceSpotDirectionstoHighestOcurrences(player, lanes)
-                    if(occurence.length === board.length - 1){
+                    const occurrence = board.reduceSpotDirectionstoHighestOccurrences(player, lanes)
+                    if(occurrence.length === board.length - 1){
                         return tentativeMove
                     }
                 }
@@ -268,7 +265,7 @@ export class CPU_Player implements Player{
 
                     for(const childState of allChildStates){
 
-                        const tentativeMove = this.differenciateMoveFromTwoStates(actualState,childState)
+                        const tentativeMove = this.differentiateMoveFromTwoStates(actualState,childState)
                         if(tentativeMove.floor < l/2 - 1 && tentativeMove.floor > l/2 + 1){
                             continue
                         }
@@ -324,7 +321,7 @@ export class CPU_Player implements Player{
     }
 
     // does not check if both are the same state
-    private differenciateMoveFromTwoStates(initialState : maskedBoard, nextState : maskedBoard) : Coordinate3D{
+    private differentiateMoveFromTwoStates(initialState : maskedBoard, nextState : maskedBoard) : Coordinate3D{
         const l = this.parentGame.board.length
         
         const cleanMask = initialState.replace(/,|\||-/g, '')
@@ -463,13 +460,13 @@ export class Game{
                             col: k
                         }, boardState)
     
-                        const highestXLine = this.board.reduceSpotDirectionstoHighestOcurrences('x' , currentSpotDirections)
+                        const highestXLine = this.board.reduceSpotDirectionstoHighestOccurrences('x' , currentSpotDirections)
     
                         if(highestXLine.length === this.board.length){
                             return Infinity
                         }
     
-                        const highestOLine = this.board.reduceSpotDirectionstoHighestOcurrences('o' , currentSpotDirections)
+                        const highestOLine = this.board.reduceSpotDirectionstoHighestOccurrences('o' , currentSpotDirections)
     
                         if(highestOLine.length === this.board.length){
                             return -Infinity
@@ -495,7 +492,7 @@ export class Game{
                 col: spot.col
             }, boardState)
 
-            const highestLine = this.board.reduceSpotDirectionstoHighestOcurrences( marker , spotDirections)
+            const highestLine = this.board.reduceSpotDirectionstoHighestOccurrences( marker , spotDirections)
 
             if(highestLine.length === this.board.length){
                 return true

@@ -3,9 +3,13 @@ n\*n\*n tic-tac-toe
 
 ## Considerations
 
-I wanted the algorithm to be applicable not only for n < 6 boards. So it would be _board size agnostic,_ this resulted in a less optimal algorithm but fairly applicable for a good amount of sizes. It's decently playable up to n = ~20. (Except, _for the time being,_ the first move it's double the amount of a normal move).
+I wanted the algorithm to be applicable not only for n < 6 boards, for it would be _board size agnostic._ 
+This resulted in a less optimal algorithm but fairly applicable for a good amount of sizes. It's decently playable up to n = ~20. (Except because, _for the time being,_ the first move it's double the amount of a normal move).
 
-Since the number of permutations is: 3^(n^3) a miniMax algorithm is not ideal. I tried to make an evaluation function based on the same principle of "value of a point convergence" and then reduce the whole board into a value. With no much success up to date.  
+Since the number of permutations is: 3^(n^3), 3 states for each point in the space and 3 dimensions, respectably, and the search space for miniMax algorithm is: O ( (Branching Factor) ^ depth ):
+Being Branching Factor n^3 initially, and for each move that is played on the board it's reduced by 1.
+
+So a miniMax solution is not ideal. I tried to make an evaluation function based on the same principle of "value of a point convergence" and then reduce the whole board into a value. With no much success.  
 
 ## Algorithm's
 
@@ -23,9 +27,9 @@ Since the number of permutations is: 3^(n^3) a miniMax algorithm is not ideal. I
     - If a winning move exist, play it
     - If opponent have a winning move next turn, block it
     - Else
-        - get a random point which is available to be played in
-        - check for all other points in the 3D space and compare which has the greatest amount of confluence abroad all lines which has this player markers, ignoring lines which cannot lead to scoring, and counting each marker and sum up all lines to give that point a final value, if a point as greater convergence than the currently selected point, make that the new point A.K.A the tentative move.
-        - play the move with the greatest value
+        - Get a random point which is available to be played in
+        - Check for all other points in the 3D space and compare which has the greatest amount of confluence abroad all lines which has this player markers, ignoring lines which cannot lead to scoring, and counting each marker and sum up all lines to give that point a final value, if a point as greater convergence than the currently selected point, make that the new point A.K.A the tentative move.
+        - Play the move with the greatest value
 
 - It has the following weaknesses: 
     - [_In the early game, both players try to occupy points which increase their potential for creating threats, without actually executing those threats._](http://fragrieu.free.fr/SearchingForSolutions.pdf) page 98, chapter 4.
@@ -43,4 +47,7 @@ Since the number of permutations is: 3^(n^3) a miniMax algorithm is not ideal. I
 ### Disclaimers
 - Urges a code refactor
 - I want to eventually re-take this project back and implement a second more optimal algorithm.
-- On top of the 2D stacked planes I want to render a Three.js Cube representation of the board, for it to be really a 3D game. 
+- On top of the 2D stacked planes I want to render a Three.js Cube representation of the board, for it to be really a 3D game.
+
+### to-do
+- add a log of moves, so the game can be replayed, add also a function that display a board with marking spots as black and white with numbers for easily reading sequences
