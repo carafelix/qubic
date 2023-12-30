@@ -225,14 +225,22 @@ export class CPU_Player implements Player{
         const board = this.parentGame.board
         const mask = board.stringMask();
         const childStates = mask.getAllChildStates(player)
+        const l = board.length;
         
-        for(const position of childStates){
-            const boardNewState = position.stringUnmask();
-            const tentativeMove = this.differenciateMoveFromTwoStates(mask,position)
-            const lanes = boardNewState.getAllLinesFromSpot(tentativeMove)
-            const occurence = boardNewState.reduceSpotDirectionstoHighestOcurrences(player, lanes)
-            if(occurence.length === board.length){
-                return tentativeMove
+        for(let z = 0; z < l; z++){
+            for(let y = 0; y < l; y++){
+                for(let x = 0; x < l; x++){
+                    const tentativeMove = this.to3Dcoord(z,y,x)
+                    if(board.getSpot(tentativeMove) !== '.'){
+                        continue
+                    }
+
+                    const lanes = board.getAllLinesFromSpot(tentativeMove)
+                    const occurence = board.reduceSpotDirectionstoHighestOcurrences(player, lanes)
+                    if(occurence.length === board.length - 1){
+                        return tentativeMove
+                    }
+                }
             }
         }
         
@@ -434,7 +442,7 @@ export class Game{
      * @param spot  if its provided player is inferred from the checked spot since it should only be called after a play 
      *  
      */
-    
+
     checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple into isTerminalTie, isTerminal returns just boolean
         const l = this.board.length
 

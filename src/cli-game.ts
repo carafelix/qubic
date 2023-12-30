@@ -12,12 +12,15 @@ export class CLI_Game extends Game {
 
 async function main() {
 
-    const game = new CLI_Game(30, true); // Human vs CPU game
-    // game.setGameAsCPUOnly()
+    const game = new CLI_Game(10, true); // Human vs CPU game
+    game.setGameAsCPUOnly()
 
 
 
     while(!game.isFinish()){
+
+      const start = new Date().getTime()
+
       const playerInTurn = game.getPlayerInTurn();
       const desiredPlay = await playerInTurn.getPlay()
       playerInTurn.plays(desiredPlay);
@@ -25,11 +28,13 @@ async function main() {
         game.checkWin()
       }
 
-      // game.tests( playerInTurn.marker , desiredPlay)
+
+      console.log(new Date().getTime() - start);
+      
 
 
     }
-    // console.log(`We have a winner!\nCongratulations ${(game.playerOne === game.getPlayerInTurn()) ? game.playerTwo.name : game.playerOne.name}`);
+    console.log(`We have a winner!\nCongratulations ${(game.playerOne === game.getPlayerInTurn()) ? game.playerTwo.name : game.playerOne.name}`);
     
 }
 
