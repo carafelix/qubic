@@ -277,6 +277,7 @@ export class CPU_Player implements Player{
         for(const position of childStates){
             const boardNewState = position.stringUnmask();
             const tentativeMove = this.differenciateMoveFromTwoStates(mask,position)
+
         }
         
         
@@ -343,6 +344,8 @@ export class CPU_Player implements Player{
             }
         }
     }
+
+    // does not check if it is the same state
     private differenciateMoveFromTwoStates(initialState : maskedBoard, nextState : maskedBoard) : Coordinate3D{
         const l = this.parentGame.board.length
         
@@ -356,22 +359,18 @@ export class CPU_Player implements Player{
         }
         let floor = 0;
         let row = 0;
+
         for(let i = 0; i < initialState.length ; i++){
             if(initialState[i] !== nextState[i]){
                 break
-            } else if (initialState[i] === '-'){
+            } else if (initialState[i] == '-'){
                 row++
             } else if (initialState[i] == '|'){
+                row++
                 floor++
             }
         }
-
-        console.log(this.to3Dcoord(floor, row % l, col % l));
-        
-
         return this.to3Dcoord(floor, row % l, col % l)
-
-        
     }
 
     private getPlayerInTurnBasedOnGameState(state : maskedBoard) : Marker{
