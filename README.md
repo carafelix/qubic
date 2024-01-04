@@ -46,9 +46,9 @@ To given an idea of the algorithm strength, the following table represents its p
     - Else
         - Get a random point which is available to be played in
         - Check for all other points in the 3D space and compare which has the greatest amount of confluence abroad all lines which has this player markers
-        - ignore all lines which cannot lead to scoring
-        - count each marker and sum up all lines to give that point a final value
-        - if a point as greater convergence than the currently selected point make that the new point
+        - Ignore all lines which cannot lead to scoring
+        - Count each marker and sum up all lines to give that point a final value
+        - If a point as greater convergence than the currently selected point make that the new point
         - Play the point with the greatest value
 
 - Up to further investigation I have found the following weaknesses: 
