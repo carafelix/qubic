@@ -1,56 +1,6 @@
 import { expect } from "chai";
 import { Game, full3Dboard } from "../index.ts";
 
-async function playAutoGames (repetitions:number , gridSize : number, isDumbGame? : boolean ,isP1Dumb? : boolean) {
-    let playerOneWins = 0
-    let playerTwoWins = 0
-    let ties = 0;
-
-    const n = repetitions
-    for(let i = 0; i < n; i++){
-        const testGame = new Game(gridSize)
-        testGame.setGameAsCPUOnly(isDumbGame, isP1Dumb)
-        const log = []
-
-        while(!testGame.isFinish()){
-            const playerInTurn = testGame.getPlayerInTurn();
-            const desiredPlay = await playerInTurn.getPlay()
-            playerInTurn.plays(desiredPlay);
-            if(playerInTurn !== testGame.getPlayerInTurn()){
-                log.push({
-                    desiredPlay,
-                    board: JSON.stringify(testGame.board)
-                })
-              testGame.checkWin()
-            }
-        }
-
-        // if(testGame.winner === testGame.playerTwo){
-        //     for(const position of log){
-        //         const mockBoard = new full3Dboard(...JSON.parse(position.board))
-        //         mockBoard.logCurrentState()
-        //         console.log(
-        //             position.desiredPlay, '\n'
-        //         )
-        //     }
-        //     break
-        // }
-
-        if(testGame.winner === testGame.playerOne){
-            playerOneWins++
-        } else if (testGame.winner === testGame.playerTwo){
-            playerTwoWins++
-        } else {
-            ties++
-        }
-    }
-    console.log()
-    console.log(`    P1 Wins    : ${playerOneWins} / ${n} = ${((playerOneWins / n) * 100).toFixed(1)}%`);
-    console.log(`    P2 Wins    : ${playerTwoWins} / ${n} = ${((playerTwoWins / n) * 100).toFixed(1)}%`);
-    console.log(`    Ties       : ${ties} / ${n} = ${((ties / n) * 100).toFixed(1)}%`);
-    console.log()
-}
-
 describe('Basic Functionality Checks',() => {
     
     it('Playing a Move', () => {
@@ -130,3 +80,55 @@ describe('Statistics for Algorithm winRatios',() => {
         })
 
 });
+
+
+
+async function playAutoGames (repetitions:number , gridSize : number, isDumbGame? : boolean ,isP1Dumb? : boolean) {
+    let playerOneWins = 0
+    let playerTwoWins = 0
+    let ties = 0;
+
+    const n = repetitions
+    for(let i = 0; i < n; i++){
+        const testGame = new Game(gridSize)
+        testGame.setGameAsCPUOnly(isDumbGame, isP1Dumb)
+        const log = []
+
+        while(!testGame.isFinish()){
+            const playerInTurn = testGame.getPlayerInTurn();
+            const desiredPlay = await playerInTurn.getPlay()
+            playerInTurn.plays(desiredPlay);
+            if(playerInTurn !== testGame.getPlayerInTurn()){
+                log.push({
+                    desiredPlay,
+                    board: JSON.stringify(testGame.board)
+                })
+              testGame.checkWin()
+            }
+        }
+
+        // if(testGame.winner === testGame.playerTwo){
+        //     for(const position of log){
+        //         const mockBoard = new full3Dboard(...JSON.parse(position.board))
+        //         mockBoard.logCurrentState()
+        //         console.log(
+        //             position.desiredPlay, '\n'
+        //         )
+        //     }
+        //     break
+        // }
+
+        if(testGame.winner === testGame.playerOne){
+            playerOneWins++
+        } else if (testGame.winner === testGame.playerTwo){
+            playerTwoWins++
+        } else {
+            ties++
+        }
+    }
+    console.log()
+    console.log(`    P1 Wins    : ${playerOneWins} / ${n} = ${((playerOneWins / n) * 100).toFixed(1)}%`);
+    console.log(`    P2 Wins    : ${playerTwoWins} / ${n} = ${((playerTwoWins / n) * 100).toFixed(1)}%`);
+    console.log(`    Ties       : ${ties} / ${n} = ${((ties / n) * 100).toFixed(1)}%`);
+    console.log()
+}
