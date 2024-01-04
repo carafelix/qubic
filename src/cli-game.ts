@@ -10,8 +10,8 @@ export class CLI_Game extends Game {
 
 
 async function main() {
-    const game = new CLI_Game(3, true, true); // Human vs CPU first game
-    // game.setGameAsCPUOnly()
+    const game = new CLI_Game(3);
+    game.setGameAsCPUOnly(true)
 
     while(!game.isFinish()){
       // const start = new Date().getTime()
@@ -25,7 +25,7 @@ async function main() {
       // console.log(new Date().getTime() - start);
       game.displayInLog()
     }
-    console.log(`We have a winner!\nCongratulations ${game.winner ? game.winner : 'tie!'}`);
+    console.log(`We have a winner!\nCongratulations ${game.winner?.name ? game.winner.name : 'tie is not possible'}`);
     
 }
 

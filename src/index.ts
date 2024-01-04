@@ -123,6 +123,16 @@ export class full3Dboard extends Array<Array<Array<string>>>{
             }
         }).reduce((acc,v)=>acc+v,0)
     }
+
+    logCurrentState = () => {
+        for(const floor of this){
+            for(const row of floor){
+                console.log(row.join(' '));
+            }
+            console.log()
+        }
+        console.log('_______________')
+    }
 };
 
 
@@ -216,6 +226,11 @@ export class CPU_Player implements Player{
             row,
             col
         }
+    }
+
+    public setDumb = () => {
+        this.getPlay = this.randomMove
+        return this
     }
 
     private aboutToWinMove(player : Marker){
@@ -431,21 +446,8 @@ export class Game{
         console.log('\n', '__________________', '\n')
     }
 
-    /**
-     * 
-     * Mask and unMask should be standarized. I think the best way is to use the constructor of full3DBoard and always use this
-     * and pass states as full board objects, instead of strings that gets converted over and over
-     * better try that and check the memory consumption
-     * 
-     * 
-     * @param state if not provided it is set to actual game state. 
-     * @param spot  if its provided player is inferred from the checked spot since it should only be called after a play 
-     *  
-     */
-
     checkTerminalState = (state? : maskedBoard, spot? : Coordinate3D) => { // must decouple into isTerminalTie, isTerminal returns just boolean
         const l = this.board.length
-
         const boardState = (state || this.board.stringMask())
 
         if(!spot){
@@ -476,7 +478,7 @@ export class Game{
             }
 
             if(!boardState.includes('.')){
-                return true // Its a tie MUST BE DECOUPLE
+                return true // Ties cannot exist
             }
 
             return false // still going
@@ -513,15 +515,20 @@ export class Game{
         return this.finish
     }
 
-    setGameAsCPUOnly = () => {
+    setGameAsCPUOnly = (setDumbPlayer? : boolean, isP1Dumb? : boolean) => {
         // next line doesn't allow for setting the game as cpu only after move already have been played
         if(this.board.stringMask().includes('o') || this.board.stringMask().includes('x')){
             return;
         }
         this.playerOne = new CPU_Player('x', this, 'cpu1');
         this.playerTwo = new CPU_Player('o', this, 'cpu2');
-        this.playerInTurn = this.playerOne
-    }  
+        if(setDumbPlayer && isP1Dumb){
+            this.playerOne = new CPU_Player('x', this, 'cpu1').setDumb()
+        } else if (setDumbPlayer){
+            this.playerTwo = new CPU_Player('o', this, 'cpu2').setDumb()
+        }
+        this.playerInTurn = this.playerOne;
+    }
 }
 
 

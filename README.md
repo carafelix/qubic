@@ -1,19 +1,21 @@
-# qubic
+# Qubic
 n\*n\*n tic-tac-toe
 
 ## Considerations
 
-I wanted the algorithm to be applicable not only for n < 6 boards, for it would be _board size agnostic._ 
+I wanted the algorithm to be applicable not only for n < 6 boards, so it would be _board size agnostic._ 
 This resulted in a less optimal algorithm but fairly applicable for a good amount of sizes. It's decently playable up to n = ~20. (Except because, _for the time being,_ the first move it's double the amount of a normal move).
 
 Since the number of permutations is: 3^(n^3), 3 states for each point in the space and 3 dimensions, respectably, and the search space for miniMax algorithm is: O ( (Branching Factor) ^ depth ):
-Being Branching Factor n^3 initially, and for each move that is played on the board it's reduced by 1.
+with Branching Factor being n^3 initially, and for each move that is played on the board it's reduced by 1.
 
 So a miniMax solution is not ideal. I tried to make an evaluation function based on the same principle of "value of a point convergence" and then reduce the whole board into a value. With no much success.  
 
 ## Algorithm's
 
-- First iteration of the algorithm is a greedy solution. As you can see from the following table it doesn't perform as good, since for solved n, p1 should always win. As of my knowledge n = 3 and n = 4 are solved. Ties are not possible as per [Hales–Jewett theorem.](https://en.wikipedia.org/wiki/Hales%E2%80%93Jewett_theorem). All games are cpu vs cpu, both using the same algorithm.
+### First iteration is greedy.
+
+As you can see from the following table it doesn't perform as good, since for solved n, p1 should always win. As of my knowledge n = 3 and n = 4 are solved. Ties are not possible as per [Hales–Jewett theorem.](https://en.wikipedia.org/wiki/Hales%E2%80%93Jewett_theorem). The following games results is playing against itself:
 
 |       | P1 Wins | P2 Wins | Iterations |
 |-------|---------|---------|------------|
@@ -23,6 +25,20 @@ So a miniMax solution is not ideal. I tried to make an evaluation function based
 | n = 6 | 9%      | 91%     | 1000       |
 | n = 7 | 96.3%   | 3.7%    | 300        |
 
+To given an idea of the algorithm strength, the following table represents its performance against a completely dumb AI, playing random moves on each turn. In this case data is shown as raw numbers since it is very close to a 100% win ratio for the non-dumb player:
+
+|       | P1 Wins | P2 Wins | Dumb |
+|-------|:-------:|:-------:|:----:|
+| n = 3 | 19999   | 1       | P2   |
+| n = 4 | 9987    | 13      | P2   |
+| n = 5 | 4996    | 4       | P2   |
+| n = 6 | 993     | 7       | P2   |
+| n = 3 | 35      | 19965   | P1   |
+| n = 4 | 21      | 9979    | P1   |
+| n = 5 | 6       | 4994    | P1   |
+| n = 6 | 0       | 1000    | P1   |
+
+
 ### The algorithm works in the following manner:
     - If a winning move exist, play it
     - If opponent have a winning move next turn, block it
@@ -31,11 +47,14 @@ So a miniMax solution is not ideal. I tried to make an evaluation function based
         - Check for all other points in the 3D space and compare which has the greatest amount of confluence abroad all lines which has this player markers, ignoring lines which cannot lead to scoring, and counting each marker and sum up all lines to give that point a final value, if a point as greater convergence than the currently selected point, make that the new point A.K.A the tentative move.
         - Play the move with the greatest value
 
-- It has the following weaknesses: 
+- Up to further investigation I have found the following weaknesses: 
     - [_In the early game, both players try to occupy points which increase their potential for creating threats, without actually executing those threats._](http://fragrieu.free.fr/SearchingForSolutions.pdf) page 98, chapter 4.
-    - It does't prevent falling into a bad sequences of moves
+    - It does't prevent falling into a forcing losing sequences of moves
     - It's always trying to execute it's threats, and therefore failing to get strong influence across the board, minimizing it's remaining attacking sequences.
 
+### Second Iteration
+
+- add a check for: if tentative move leads into opponent having a winning move (a move that we must block), skip that tentative move. maybe allowable in certain depth? maybe scan for the sequence forcing moves if it leads to opponent winning?
 
 ## CLI Game Mode
 - run ```ts-node-esm ./src/cli-game.ts```
@@ -51,3 +70,4 @@ So a miniMax solution is not ideal. I tried to make an evaluation function based
 
 ### to-do
 - add a log of moves, so the game can be replayed, add also a function that display a board with marking spots as black and white with numbers for easily reading sequences
+- hooking up a web interface should be easy. Display the floors and make every square clickable with a game.playerInTurn.play() function, the turnHandler should do the rest
