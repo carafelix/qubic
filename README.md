@@ -45,8 +45,11 @@ To given an idea of the algorithm strength, the following table represents its p
     - If opponent have a winning move next turn, block it
     - Else
         - Get a random point which is available to be played in
-        - Check for all other points in the 3D space and compare which has the greatest amount of confluence abroad all lines which has this player markers, ignoring lines which cannot lead to scoring, and counting each marker and sum up all lines to give that point a final value, if a point as greater convergence than the currently selected point, make that the new point A.K.A the tentative move.
-        - Play the move with the greatest value
+        - Check for all other points in the 3D space and compare which has the greatest amount of confluence abroad all lines which has this player markers
+        - ignore all lines which cannot lead to scoring
+        - count each marker and sum up all lines to give that point a final value
+        - if a point as greater convergence than the currently selected point make that the new point
+        - Play the point with the greatest value
 
 - Up to further investigation I have found the following weaknesses: 
     - [_In the early game, both players try to occupy points which increase their potential for creating threats, without actually executing those threats._](http://fragrieu.free.fr/SearchingForSolutions.pdf) page 98, chapter 4.
