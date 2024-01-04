@@ -52,7 +52,7 @@ To given an idea of the algorithm strength, the following table represents its p
         - Play the point with the greatest value
 
 - Up to further investigation I have found the following weaknesses: 
-    - [_In the early game, both players try to occupy points which increase their potential for creating threats, without actually executing those threats._](http://fragrieu.free.fr/SearchingForSolutions.pdf) page 98, chapter 4.
+    - [_In the early game, both players (should) try to occupy points which increase their potential for creating threats, without actually executing those threats._](http://fragrieu.free.fr/SearchingForSolutions.pdf) page 98, chapter 4.
     - It does't prevent falling into a forcing losing sequences of moves
     - It's always trying to execute it's threats, and therefore failing to get strong influence across the board, minimizing it's remaining attacking sequences.
 
