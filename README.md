@@ -33,6 +33,7 @@ To given an idea of the algorithm strength, the following table represents its p
 | n = 4 | 9987    | 13      | P2   |
 | n = 5 | 4996    | 4       | P2   |
 | n = 6 | 993     | 7       | P2   |
+|-------|---------|---------|------|
 | n = 3 | 35      | 19965   | P1   |
 | n = 4 | 21      | 9979    | P1   |
 | n = 5 | 6       | 4994    | P1   |
