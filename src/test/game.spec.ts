@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Game, full3Dboard } from "../index.ts";
+import { Game, full3Dboard } from "../game.ts";
 
 describe('Basic Functionality Checks',() => {
     

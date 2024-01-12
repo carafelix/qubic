@@ -1,6 +1,6 @@
 #!/bin/bash/env node
 
-import { Game, HumanPlayer } from "./index.ts";
+import { Game, HumanPlayer } from "./game.ts";
 
 export class CLI_Game extends Game {
   // overwrite playerOne and playerTwo play function trough composition
