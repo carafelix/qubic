@@ -20,9 +20,10 @@
             "password": "curantito1945"
         }
     ],
-    "cSpell.enabled": true,
+    "cSpell.enabled": false,
     "cSpell.words": [
         "Jewett",
         "Qubic"
-    ]
+    ],
+    "cSpell.language": "es-ES,en"
 }
