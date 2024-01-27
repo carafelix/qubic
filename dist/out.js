@@ -38,15 +38,24 @@
         for (const direction of checkDirections) {
           let forward = { ...spot };
           let backward = { ...spot };
-          const count = [this.getSpot(spot)];
+          const count = [{
+            spotState: this.getSpot(spot),
+            cord: spot
+          }];
           for (let i = 0; i < this.length - 1; i++) {
             forward = addVectors(forward, direction);
             backward = substractVectors(backward, direction);
             if (forward.col >= 0 && forward.col < this.length && forward.row >= 0 && forward.row < this.length && forward.floor >= 0 && forward.floor < this.length) {
-              count.push(unMaskedBoardState[forward.floor][forward.row][forward.col]);
+              count.push({
+                spotState: unMaskedBoardState[forward.floor][forward.row][forward.col],
+                cord: forward
+              });
             }
             if (backward.col >= 0 && backward.col < this.length && backward.row >= 0 && backward.row < this.length && backward.floor >= 0 && backward.floor < this.length) {
-              count.push(unMaskedBoardState[backward.floor][backward.row][backward.col]);
+              count.push({
+                spotState: unMaskedBoardState[backward.floor][backward.row][backward.col],
+                cord: backward
+              });
             }
           }
           counts.push(count);
@@ -65,7 +74,7 @@
       this.reduceSpotDirectionstoHighestOccurrences = (player, spotDirections) => {
         return spotDirections.map((line) => {
           return line.filter((v) => {
-            return v === player;
+            return v.spotState === player;
           });
         }).reduce((acc, v) => {
           return v.length >= acc.length ? v : acc;
@@ -76,8 +85,9 @@
       this.mapReduceSpotDirectionsToValue = (player, spotDirections, nextTurnPlayer) => {
         const opponentMarker = player === "x" ? "o" : "x";
         return spotDirections.map((lane) => {
-          const laneCount = (lane.join("").match(new RegExp(`${player}`, "g")) || []).length;
-          if (lane.includes(opponentMarker)) {
+          const strLane = lane.map((v) => v.spotState);
+          const laneCount = (strLane.join("").match(new RegExp(`${player}`, "g")) || []).length;
+          if (strLane.includes(opponentMarker)) {
             return 0;
           } else if (laneCount === this.length) {
             return Infinity;
@@ -226,7 +236,8 @@
             }
             const allLinesFromTentativeMove = this.parentGame.board.getAllLinesFromSpot(tentativeMove);
             const currentMoveImpact = allLinesFromTentativeMove.reduce((acc, v) => {
-              if (v.includes(opponentMarker)) {
+              const strLine = v.map((line) => line.spotState);
+              if (strLine.includes(opponentMarker)) {
                 return acc;
               } else {
                 return acc + v.join("");
@@ -245,7 +256,7 @@
       for (let z = 0; z < l; z++) {
         for (let y = 0; y < l; y++) {
           for (let x = 0; x < l; x++) {
-            if (this.parentGame.board.getSpot(this.to3Dcoord(z, y, x)) !== ".,") {
+            if (this.parentGame.board.getSpot(this.to3Dcoord(z, y, x)) !== "\xB7") {
               continue;
             }
             const currentSpotDirections = this.parentGame.board.getAllLinesFromSpot(this.to3Dcoord(z, y, x));
@@ -335,19 +346,25 @@
                 }, boardState);
                 const highestXLine = this.board.reduceSpotDirectionstoHighestOccurrences("x", currentSpotDirections);
                 if (highestXLine.length === this.board.length) {
-                  return Infinity;
+                  return {
+                    bol: Infinity,
+                    line: highestXLine
+                  };
                 }
                 const highestOLine = this.board.reduceSpotDirectionstoHighestOccurrences("o", currentSpotDirections);
                 if (highestOLine.length === this.board.length) {
-                  return -Infinity;
+                  return {
+                    bol: -Infinity,
+                    line: highestOLine
+                  };
                 }
               }
             }
           }
-          if (!boardState.includes("\xB7")) {
-            return true;
-          }
-          return false;
+          return {
+            bol: false,
+            line: null
+          };
         } else {
           const marker = boardState.stringUnmask()[spot.floor][spot.row][spot.col];
           const spotDirections = this.board.getAllLinesFromSpot({
@@ -357,14 +374,21 @@
           }, boardState);
           const highestLine = this.board.reduceSpotDirectionstoHighestOccurrences(marker, spotDirections);
           if (highestLine.length === this.board.length) {
-            return true;
+            return {
+              bol: true,
+              line: highestLine
+            };
           } else
-            return false;
+            return {
+              // still going
+              bol: false,
+              line: highestLine
+            };
         }
       };
       this.checkWin = (state, spot) => {
         const isTerminal = this.checkTerminalState(state, spot);
-        if (isTerminal) {
+        if (isTerminal.bol) {
           this.finish = true;
           this.winner = this.playerOne === this.getPlayerInTurn() ? this.playerTwo : this.playerOne;
         }
@@ -490,7 +514,7 @@
         for (let j = 0; j < l; j++) {
           for (let k = 0; k < l; k++) {
             const square = document.createElement("div");
-            square.dataset.value = `(${i},${j},${k})`;
+            square.dataset.cord = `(${i},${j},${k})`;
             square.innerText = runninGame.board[i][j][k];
             square.classList.add("spot");
             if (j === 0) {
@@ -515,7 +539,12 @@
               square.innerText = playingPlayer.marker;
               const winningLine = runninGame.checkWin(runninGame.board.stringMask(), desiredPlay).line;
               if (runninGame.isFinish()) {
-                console.log(winningLine);
+                winningLine?.forEach((spot) => {
+                  const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`);
+                  if (winningSpot) {
+                    winningSpot.style.backgroundColor = "lightgreen";
+                  }
+                });
               }
             });
             floorDiv.appendChild(square);

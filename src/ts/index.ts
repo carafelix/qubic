@@ -38,7 +38,7 @@ const startGameBtn = document.querySelector('#start-game') as HTMLButtonElement;
                                 for(let j=0; j<l;j++){
                                         for(let k=0; k<l;k++){
                                                 const square = document.createElement('div');
-                                                square.dataset.value = `(${i},${j},${k})`
+                                                square.dataset.cord = `(${i},${j},${k})`
                                                 square.innerText = runninGame.board[i][j][k]
                                                 
                                                 square.classList.add("spot")   
@@ -70,7 +70,12 @@ const startGameBtn = document.querySelector('#start-game') as HTMLButtonElement;
                                                         const winningLine = runninGame.checkWin(runninGame.board.stringMask(), desiredPlay).line
 
                                                         if(runninGame.isFinish()){
-                                                           console.log(winningLine)     
+                                                           winningLine?.forEach((spot)=>{
+                                                                const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`) as HTMLDivElement
+                                                                        if(winningSpot){
+                                                                                winningSpot.style.backgroundColor = 'lightgreen'
+                                                                        }
+                                                                })     
                                                         }
                                                 })
 

@@ -15,7 +15,7 @@ export class full3Dboard extends Array<Array<Array<string>>>{
         return new maskedBoard(boardState)
     }
 
-    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) : spotLanes => {
+    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) => {
 
         let stateBoard : full3Dboard | undefined = undefined;
 
@@ -41,13 +41,16 @@ export class full3Dboard extends Array<Array<Array<string>>>{
             { col:-1 , row:  1 , floor:  1 },
         ];
 
-        const counts = []
+        const counts = [] 
 
         for(const direction of checkDirections){
             let forward  = {...spot}
             let backward = {...spot}
 
-            const count = [this.getSpot(spot)]
+            const count = [{
+                spotState: this.getSpot(spot),
+                cord: spot
+            }]
             
             for(let i = 0; i < this.length - 1; i++ ){
 
@@ -62,7 +65,10 @@ export class full3Dboard extends Array<Array<Array<string>>>{
                     forward.floor >= 0 &&
                     forward.floor < this.length
                 ) {
-                    count.push(unMaskedBoardState[forward.floor][forward.row][forward.col]);
+                    count.push({
+                        spotState: unMaskedBoardState[forward.floor][forward.row][forward.col] as Spot,
+                        cord: forward
+                    });
                 }
     
                 if (
@@ -73,47 +79,48 @@ export class full3Dboard extends Array<Array<Array<string>>>{
                     backward.floor >= 0 &&
                     backward.floor < this.length
                 ) {
-                    count.push(unMaskedBoardState[backward.floor][backward.row][backward.col]);
+                    count.push({
+                        spotState: unMaskedBoardState[backward.floor][backward.row][backward.col] as Spot,
+                        cord: backward
+                    })
                 }
             }
             counts.push(count)
         }
-
         return counts
-
     }
 
 
-    getSpot = (coord : Coordinate3D, state? : maskedBoard) => {
+    getSpot = (coord : Coordinate3D, state? : maskedBoard) : Spot => {
         if(state){
             const boardState = state.stringUnmask();
             if(!boardState) throw 'Something is wrong dude at getting the spot dude';
 
-           return boardState[coord.floor][coord.row][coord.col]
+           return boardState[coord.floor][coord.row][coord.col] as Spot
         }
-        return this[coord.floor][coord.row][coord.col]
+        return this[coord.floor][coord.row][coord.col] as Spot
     }
     
-    reduceSpotDirectionstoHighestOccurrences = (player : Marker, spotDirections : spotLanes) => {
+    reduceSpotDirectionstoHighestOccurrences = (player : Marker, spotDirections : Array<Array<spotWithCordAndState>>) => {
         return spotDirections.map(line=>{
             return line.filter((v)=>{
-                return v === player
+                return v.spotState === player
             })
         }).reduce((acc,v)=>{
             return (v.length >= acc.length) ? v : acc 
         }, [] )
     }
 
-    reduceSumSpotDirections = (player : Marker, spotDirections : spotLanes) => {
+    reduceSumSpotDirections = (player : Marker, spotDirections : Array<Array<spotWithCordAndState>>) => {
 
     }
 
-    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes, nextTurnPlayer? : Marker) => {
+    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : Array<Array<spotWithCordAndState>>, nextTurnPlayer? : Marker) => {
         const opponentMarker = (player === 'x') ? 'o' : 'x';
-
-        return spotDirections.map((lane : string[]) => {
-            const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
-            if(lane.includes(opponentMarker)){
+        return spotDirections.map((lane : spotWithCordAndState[]) => {
+            const strLane = lane.map(v=>v.spotState)
+            const laneCount = (strLane.join('').match(new RegExp(`${player}`, 'g')) || []).length
+            if(strLane.includes(opponentMarker)){
                 return 0
             } else if(laneCount === this.length){
                 return Infinity
@@ -301,7 +308,8 @@ export class CPU_Player implements Player{
                         }
                         const allLinesFromTentativeMove = this.parentGame.board.getAllLinesFromSpot(tentativeMove);
                         const currentMoveImpact = allLinesFromTentativeMove.reduce((acc,v)=>{
-                            if(v.includes(opponentMarker)){
+                            const strLine = v.map(line => line.spotState)
+                            if(strLine.includes(opponentMarker)){
                                 return acc
                             } else {
                                 return acc + v.join('')
@@ -325,7 +333,7 @@ export class CPU_Player implements Player{
             for(let y = 0; y < l; y++){
                 for(let x = 0; x < l; x++){
 
-                    if(this.parentGame.board.getSpot(this.to3Dcoord(z,y,x)) !== '.,'){
+                    if(this.parentGame.board.getSpot(this.to3Dcoord(z,y,x)) !== '·'){
                         continue
                     }
 
@@ -480,23 +488,28 @@ export class Game{
                         const highestXLine = this.board.reduceSpotDirectionstoHighestOccurrences('x' , currentSpotDirections)
     
                         if(highestXLine.length === this.board.length){
-                            return Infinity
+                            return {
+                                bol: Infinity,
+                                line: highestXLine
+                            }
                         }
     
                         const highestOLine = this.board.reduceSpotDirectionstoHighestOccurrences('o' , currentSpotDirections)
     
                         if(highestOLine.length === this.board.length){
-                            return -Infinity
+                            return {
+                                bol: -Infinity,
+                                line: highestOLine
+                            }
                         }
                     }
                 }
             }
 
-            if(!boardState.includes('·')){
-                return true // Ties cannot exist
-            }
-
-            return false // still going
+            return {
+                bol:false,
+                line: null
+            } // still going
 
         } else {
             // check only the provided spot
@@ -512,15 +525,21 @@ export class Game{
             const highestLine = this.board.reduceSpotDirectionstoHighestOccurrences( marker , spotDirections)
 
             if(highestLine.length === this.board.length){
-                return true
-            } else return false // still going
+                return {
+                    bol: true,
+                    line: highestLine
+                }
+            } else return { // still going
+                bol: false,
+                line: highestLine
+            } 
         }
     }
 
 
     checkWin = (state? : maskedBoard, spot? : Coordinate3D) => {
         const isTerminal = this.checkTerminalState(state, spot)
-        if(isTerminal){
+        if(isTerminal.bol){
             this.finish = true
             this.winner = (this.playerOne === this.getPlayerInTurn()) ? this.playerTwo : this.playerOne
         }
@@ -590,8 +609,13 @@ interface Player{
     to3Dcoord(floor : number, row : number, col : number) : Coordinate3D
 }
 
-interface spotLanes extends Array<Array<string>>{
+interface spotLanes extends Array<Array<spotWithCordAndState>>{
 
+}
+
+interface spotWithCordAndState{
+    spotState: Spot,
+    cord: Coordinate3D
 }
 
 
