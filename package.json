@@ -10,7 +10,7 @@
   },
   "scripts": {
     "game-tests": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts --timeout 99900000",
-    "build": "esbuild ./src/ts/index.ts --bundle --outfile=build/out.js"
+    "watch": "esbuild ./src/ts/index.ts --bundle --outfile=dist/out.js --watch"
   },
   "dependencies": {
     "@inquirer/prompts": "^3.3.0",

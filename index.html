@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qubic</title>
-    <script type="module" src="./out/index.js" defer></script>
+    <script src="./dist/out.js" defer></script>
+    <link rel="stylesheet" href="./src/css/style.css">
 </head>
 <body>
     <div id="game-settings">
-        <!-- oninput="this.nextElementSibling.value = this.value" -->
-        <input type="range" name="nLayers" id="nLayersInput" min="3" max="10">
-        <output"></output>
+        <input type="range" name="nLayers" id="n-grid-size-input" min="3" max="10">
+        <output></output>
+        <input type="checkbox" name="cpu-game" id="cpu-game">
+        <input type="checkbox" name="cpu-first" id="cpu-first">
+        <input type="checkbox" name="cpu-only" id="cpu-only">
+        <button type="button" id="start-game">Start Game</button>
     </div>
     <div id="boards">
 

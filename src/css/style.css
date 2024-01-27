@@ -1,0 +1,46 @@
+
+body{
+    width: 100%;
+    height: 100%;
+}
+
+#boards{
+    display: grid;
+    gap: 2rem;
+
+    /* temporary */
+    max-width: 40%;
+    margin-top: 20px; 
+}
+
+.boardFloor{
+    display: grid;
+
+    /* temporary*/
+    /* Needs to be more responsive */
+
+}
+
+.spot{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid;
+    min-width: 20px;
+    min-height: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.spot.top{
+    border-top: none;
+}
+.spot.left{
+    border-left: none;
+}
+.spot.right{
+    border-right: none;
+}
+.spot.bottom{
+    border-bottom: none;
+}

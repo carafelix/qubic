@@ -159,7 +159,14 @@ export class HumanPlayer implements Player{
             try {
                 playInput = prompt(`${this.name} Please input your play in the format of Z Y X, delimited by a space`);
             } catch {
-                playInput = await input({message: `${this.name} Please input your play in the format of Z Y X, delimited by a space`})
+                // this killed the cli version, but I think its easy to get it back if I decouple the way
+                // the Game Class is composed, and with no need to initilize the HumanPlayer with a reference to its parentGame
+                // And make it only return a play whenever a gameState and a marker is pased to it.
+                // and manage the playing of the returned move inside the game
+                // So its more versatile, that way I could compose different players (CLI, GUI, CPU) more easily
+                
+                
+                // playInput = await input({message: `${this.name} Please input your play in the format of Z Y X, delimited by a space`})
             }
             if(!playInput || !validDelimiter.test((playInput.trim()))) {
                 console.log('Input is not in the valid format, try again');
@@ -176,7 +183,8 @@ export class HumanPlayer implements Player{
         return play
 
     }
-    private validStringToPlay(str : string) : Coordinate3D {
+    
+    public validStringToPlay(str : string) : Coordinate3D {
         const ZXY = str.split(/\s/gm)
         return {
             floor: +ZXY[0]-1,
@@ -187,6 +195,14 @@ export class HumanPlayer implements Player{
     
     setName(name : string){
         this.name = name;
+    }
+
+    public to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
+        return {
+            floor,
+            row,
+            col
+        }
     }
 }
 
@@ -219,7 +235,7 @@ export class CPU_Player implements Player{
         return this.getMostStackSpot()
     }
 
-    private to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
+    public to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
         return {
             floor,
             row,
@@ -242,7 +258,7 @@ export class CPU_Player implements Player{
             for(let y = 0; y < l; y++){
                 for(let x = 0; x < l; x++){
                     const tentativeMove = this.to3Dcoord(z,y,x)
-                    if(board.getSpot(tentativeMove) !== '.'){
+                    if(board.getSpot(tentativeMove) !== '·'){
                         continue
                     }
 
@@ -387,7 +403,7 @@ export class Game{
                     const row = [];
 
                     for (let k = 0; k < gridSize; k++) {
-                        row.push('.');
+                        row.push('·');
                     }
                     floor.push(row);
                     }
@@ -427,7 +443,7 @@ export class Game{
     }
 
     checkPlaySpotIsEmpty = (coord : Coordinate3D) => {
-        return (this.board?.[coord.floor]?.[coord.row]?.[coord.col] === '.')
+        return (this.board?.[coord.floor]?.[coord.row]?.[coord.col] === '·')
     }
 
     updateUI = () => {
@@ -476,7 +492,7 @@ export class Game{
                 }
             }
 
-            if(!boardState.includes('.')){
+            if(!boardState.includes('·')){
                 return true // Ties cannot exist
             }
 
@@ -484,8 +500,8 @@ export class Game{
 
         } else {
             // check only the provided spot
-
-            const marker = boardState[spot.floor][spot.row][spot.col] as Marker
+            
+            const marker = boardState.stringUnmask()[spot.floor][spot.row][spot.col] as Marker
 
             const spotDirections = this.board.getAllLinesFromSpot({
                 floor: spot.floor,
@@ -502,12 +518,13 @@ export class Game{
     }
 
 
-    checkWin = () => {
-        const isTerminal = this.checkTerminalState()
+    checkWin = (state? : maskedBoard, spot? : Coordinate3D) => {
+        const isTerminal = this.checkTerminalState(state, spot)
         if(isTerminal){
             this.finish = true
             this.winner = (this.playerOne === this.getPlayerInTurn()) ? this.playerTwo : this.playerOne
         }
+        return isTerminal
     }
 
     isFinish = () => {
@@ -528,6 +545,9 @@ export class Game{
         }
         this.playerInTurn = this.playerOne;
     }
+}
+
+export class CLI_game extends Game{
 }
 
 
@@ -551,7 +571,7 @@ export class Game{
 
 
 type Marker = 'x' | 'o';
-type Spot = '.' | Marker
+type Spot = '·' | Marker
 interface Coordinate2D {
     row: number,
     col: number
@@ -567,8 +587,8 @@ interface Player{
     name : string
     plays(desiredPlay : Coordinate3D): void
     getPlay() : Coordinate3D | Promise<Coordinate3D>
+    to3Dcoord(floor : number, row : number, col : number) : Coordinate3D
 }
-
 
 interface spotLanes extends Array<Array<string>>{
 
@@ -603,7 +623,7 @@ class maskedBoard extends String {
         const states = [] // must be maskedBoard[] but I think maskedBoard needs to be changed to Array
         
         for(let i = 0; i < this.length; i++){
-            if(this[i] === '.'){
+            if(this[i] === '·'){
                 const child = this.split('')
                 child[i] = player
 
