@@ -578,20 +578,27 @@ interface spotLanes extends Array<Array<string>>{
 
 // conventions for maskedBoard
 
+
+
 class maskedBoard extends String {
     constructor(boardState : Array<Array<Array<string>>>){
-        const str = []
-        for(let i = 0; i < boardState.length; i++){
-            str.push(boardState[i].join('-').replace(/,/g, ''))
-        }
-        super(str.join('|').replace(/,/g, ''))
+        super(
+            ( // workaround for super() call
+                (boardState : Array<Array<Array<string>>>)=>{
+                    const str = []
+                    for(let i = 0; i < boardState.length; i++){
+                        str.push(boardState[i].join('-').replace(/,/g, ''))
+                    }
+                    return str
+                }
+                )(boardState).join('|').replace(/,/g, '')
+            )
     }
 
     stringUnmask = () => {
         const board = this.split('|').map(floor=>floor.split('-').map((row)=>row.split('')))
         return new full3Dboard(...board)
     }
-
 
     getAllChildStates = (player : Marker) => { 
         const states = [] // must be maskedBoard[] but I think maskedBoard needs to be changed to Array

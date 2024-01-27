@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Game } from "../game.ts";
+import { Game } from "../game";
 
 describe('Basic Functionality Checks',() => {
     

@@ -1,2 +1,4 @@
-import { Game } from "./game.ts";
+import { Game } from "./game";
 
+const nLayersInput = document.querySelector("n-layers");
+window
