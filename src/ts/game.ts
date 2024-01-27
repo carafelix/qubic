@@ -1,5 +1,4 @@
-import { select , input } from "@inquirer/prompts"
-
+import { input } from "../../node_modules/@inquirer/prompts/dist/esm/index.mjs"
 
 
 export class full3Dboard extends Array<Array<Array<string>>>{
@@ -584,14 +583,14 @@ class maskedBoard extends String {
     constructor(boardState : Array<Array<Array<string>>>){
         super(
             ( // workaround for super() call
-                (boardState : Array<Array<Array<string>>>)=>{
+                ()=>{
                     const str = []
                     for(let i = 0; i < boardState.length; i++){
                         str.push(boardState[i].join('-').replace(/,/g, ''))
                     }
                     return str
                 }
-                )(boardState).join('|').replace(/,/g, '')
+                )().join('|').replace(/,/g, '')
             )
     }
 

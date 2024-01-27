@@ -9,9 +9,11 @@
     "ts-node": "^10.9.2"
   },
   "scripts": {
-    "tests": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts --timeout 99900000"
+    "game-tests": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts --timeout 99900000",
+    "build": "esbuild ./src/ts/index.ts --bundle --outfile=build/out.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^3.3.0"
+    "@inquirer/prompts": "^3.3.0",
+    "esbuild": "^0.20.0"
   }
 }
