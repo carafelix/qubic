@@ -1,4 +1,4 @@
-import { CPU_Player, Coordinate3D, Game } from "./game";
+import { CPU_Player, Coordinate3D, Game, Player } from "./game";
 
 
 const nGridSizeInput = document.querySelector("#n-grid-size-input") as HTMLInputElement;
@@ -29,12 +29,23 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
                                 if(runningGame.isFinish()){return}
 
                                 const playerInTurn = runningGame.getPlayerInTurn()
-                                const desiredPlay = playerInTurn.getPlay()
 
+                                let desiredPlay;
+                                while(!desiredPlay){
+                                        desiredPlay = playerInTurn.getPlay()
+                                        if(!runningGame.checkPlaySpotIsEmpty(desiredPlay)){
+                                                desiredPlay = undefined;
+                                        }
+                                }
                                 playerInTurn.plays(desiredPlay)
 
                                 const playedSpot = document.querySelector(`[data-cord="(${desiredPlay.floor},${desiredPlay.row},${desiredPlay.col})"]`) as HTMLDivElement
                                 playedSpot.innerText = playerInTurn.marker
+                                
+                                updateLog(runningGame,desiredPlay,playerInTurn)
+                                ifWinColorDOM(runningGame,desiredPlay)
+
+                                // quirky way to make the thing go step by step lol
 
                                 const emptyImg = document.createElement('img')
                                         emptyImg.setAttribute('src',"./assets/transparent.webp");
@@ -45,7 +56,7 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
                                 emptyImg.addEventListener('load', ()=>{
                                         gameLoop()
                                 })
-                                updateDOMcheckWin(runningGame,desiredPlay)
+                                
                         }
                         gameLoop();
                         
@@ -58,12 +69,28 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
                 }
         })
 
+function updateLog(runningGame : Game, playedPlay : Coordinate3D, player : Player){
+        // better would be not to loop over the whole array everytime lol
+        // just append a new line each time anyone plays a move
+        
+        const log = document.querySelector('#log') as HTMLDivElement;
+                log.innerText += `${player.name} played ${player.marker} ${cordToParentesis(playedPlay)}\n`
+        // log.innerText = '';
+        // for(const [index, play] of runningGame.playLog.entries()){
+        //         log.innerText += `in turn ${index + 1}: ${play.from.name} played ${cordToParentesis(play.cord)}\n`
+        // }
+}
 
+function cordToParentesis(cord : Coordinate3D){
+        return `(${cord.floor},${cord.row},${cord.col})`
+}
 
 function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean){
         const boards = document.querySelector('#boards');  // break down in smaller functions
-        if(boards){
+        const log =  document.querySelector('#log'); 
+        if(boards && log){
             boards.innerHTML = ''
+            log.innerHTML = ''
 
             const l = runningGame.board.length;
             
@@ -105,7 +132,9 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean){
                                                 playingPlayer.plays(desiredPlay);
                                                 square.innerText = playingPlayer.marker
                                                 
-                                                updateDOMcheckWin(runningGame,desiredPlay)
+                                                ifWinColorDOM(runningGame,desiredPlay)
+                                                
+                                                updateLog(runningGame,desiredPlay, playingPlayer)
                                         })
                                     }
                                     floorDiv.appendChild(square)
@@ -116,17 +145,23 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean){
         };
 }
 
-function updateDOMcheckWin(runningGame : Game, desiredPlay : Coordinate3D){
+function ifWinColorDOM(runningGame : Game, desiredPlay : Coordinate3D){
         const winningLine = runningGame.checkWin(runningGame.board.stringMask(), desiredPlay).line
     
-                                                if(runningGame.isFinish()){
-                                                   winningLine?.forEach((spot)=>{
-                                                        const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`) as HTMLDivElement
-                                                                if(winningSpot){
-                                                                        winningSpot.style.backgroundColor = 'lightgreen';
-                                                                        winningSpot.style.color = 'black';
-                                                                }
-                                                        })
-                                                        console.log(runningGame.playLog)
-                                                }
+        if(runningGame.isFinish()){
+        
+                console.log(winningLine)
+
+                winningLine?.forEach((spot)=>{
+                const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`) as HTMLDivElement
+                        if(winningSpot){
+                                winningSpot.style.backgroundColor = 'lightgreen';
+                                winningSpot.style.color = 'black';
+                        }
+                })
+                
+        const log = document.querySelector('#log') as HTMLDivElement;
+                log.innerText += `Winner is: ${runningGame.winner?.name}`
+        }
+
 }

@@ -403,16 +403,19 @@
       this.isFinish = () => {
         return this.finish;
       };
-      this.setGameAsCPUOnly = (setDumbPlayer, isP1Dumb) => {
+      this.setGameAsCPUOnly = (isP1Dumb, isP2Dumb) => {
         if (this.board.stringMask().includes("o") || this.board.stringMask().includes("x")) {
           return;
         }
         this.playerOne = new CPU_Player("x", this, "cpu1");
         this.playerTwo = new CPU_Player("o", this, "cpu2");
-        if (setDumbPlayer && isP1Dumb) {
+        if (isP2Dumb && isP1Dumb) {
           this.playerOne = new CPU_Player("x", this, "cpu1").setDumb();
-        } else if (setDumbPlayer) {
           this.playerTwo = new CPU_Player("o", this, "cpu2").setDumb();
+        } else if (isP2Dumb) {
+          this.playerTwo = new CPU_Player("o", this, "cpu2").setDumb();
+        } else if (isP1Dumb) {
+          this.playerOne = new CPU_Player("x", this, "cpu1").setDumb();
         }
         this.playerInTurn = this.playerOne;
       };
@@ -509,10 +512,18 @@
           return;
         }
         const playerInTurn = runningGame.getPlayerInTurn();
-        const desiredPlay = playerInTurn.getPlay();
+        let desiredPlay;
+        while (!desiredPlay) {
+          desiredPlay = playerInTurn.getPlay();
+          if (!runningGame.checkPlaySpotIsEmpty(desiredPlay)) {
+            desiredPlay = void 0;
+          }
+        }
         playerInTurn.plays(desiredPlay);
         const playedSpot = document.querySelector(`[data-cord="(${desiredPlay.floor},${desiredPlay.row},${desiredPlay.col})"]`);
         playedSpot.innerText = playerInTurn.marker;
+        updateLog(runningGame, desiredPlay, playerInTurn);
+        ifWinColorDOM(runningGame, desiredPlay);
         const emptyImg = document.createElement("img");
         emptyImg.setAttribute("src", "./assets/transparent.webp");
         emptyImg.style.position = "absolute";
@@ -522,7 +533,6 @@
         emptyImg.addEventListener("load", () => {
           gameLoop2();
         });
-        updateDOMcheckWin(runningGame, desiredPlay);
       };
       var gameLoop = gameLoop2;
       const p1Dumb = confirm("Player 1 is dumb?");
@@ -536,10 +546,20 @@
       }
     }
   });
+  function updateLog(runningGame, playedPlay, player) {
+    const log = document.querySelector("#log");
+    log.innerText += `${player.name} played ${player.marker} ${cordToParentesis(playedPlay)}
+`;
+  }
+  function cordToParentesis(cord) {
+    return `(${cord.floor},${cord.row},${cord.col})`;
+  }
   function composeDOMboard(runningGame, isHumanPlaying) {
     const boards = document.querySelector("#boards");
-    if (boards) {
+    const log = document.querySelector("#log");
+    if (boards && log) {
       boards.innerHTML = "";
+      log.innerHTML = "";
       const l = runningGame.board.length;
       for (let i = 0; i < l; i++) {
         const floorDiv = document.createElement("div");
@@ -573,7 +593,8 @@
                 const desiredPlay = playingPlayer.to3Dcoord(i, j, k);
                 playingPlayer.plays(desiredPlay);
                 square.innerText = playingPlayer.marker;
-                updateDOMcheckWin(runningGame, desiredPlay);
+                ifWinColorDOM(runningGame, desiredPlay);
+                updateLog(runningGame, desiredPlay, playingPlayer);
               });
             }
             floorDiv.appendChild(square);
@@ -584,9 +605,10 @@
     }
     ;
   }
-  function updateDOMcheckWin(runningGame, desiredPlay) {
+  function ifWinColorDOM(runningGame, desiredPlay) {
     const winningLine = runningGame.checkWin(runningGame.board.stringMask(), desiredPlay).line;
     if (runningGame.isFinish()) {
+      console.log(winningLine);
       winningLine?.forEach((spot) => {
         const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`);
         if (winningSpot) {
@@ -594,7 +616,8 @@
           winningSpot.style.color = "black";
         }
       });
-      console.log(runningGame.playLog);
+      const log = document.querySelector("#log");
+      log.innerText += `Winner is: ${runningGame.winner?.name}`;
     }
   }
 })();
