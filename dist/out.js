@@ -116,7 +116,7 @@
         this.parentGame.turnPlayHandler(desiredPlay, this);
       };
     }
-    async getPlay() {
+    getPlay() {
       let play;
       let playInput;
       const l = this.parentGame.board.length;
@@ -313,6 +313,12 @@
           this.setPlayIntoBoard(played, from);
           this.switchPlayerTurn();
           this.updateUI();
+          this.playLog.push(
+            {
+              from,
+              cord: played
+            }
+          );
         }
       };
       this.getPlayerInTurn = () => {
@@ -410,6 +416,7 @@
         }
         this.playerInTurn = this.playerOne;
       };
+      this.playLog = [];
       if (this.gridSize < 3)
         this.gridSize = 3;
       this.finish = false;
@@ -484,28 +491,56 @@
   }
 
   // src/ts/index.ts
-  console.log("vaya papi");
   var nGridSizeInput = document.querySelector("#n-grid-size-input");
   var gridSizeOutput = nGridSizeInput.nextElementSibling;
   gridSizeOutput.innerText = nGridSizeInput.value;
   nGridSizeInput.oninput = () => {
     gridSizeOutput.innerText = nGridSizeInput.value;
   };
-  var startGameBtn = document.querySelector("#start-game");
-  startGameBtn.addEventListener("click", () => {
+  var startGameBtn = document.querySelector("#new-game");
+  startGameBtn.addEventListener("click", async () => {
     const cpuGameCheckbox = document.querySelector("#cpu-game");
     const cpuFirstCheckbox = document.querySelector("#cpu-first");
     const cpuOnlyCheckbox = document.querySelector("#cpu-only");
-    const runninGame = new Game(+nGridSizeInput.value, cpuGameCheckbox.checked, cpuFirstCheckbox.checked);
+    const runningGame = new Game(+nGridSizeInput.value, cpuGameCheckbox.checked, cpuFirstCheckbox.checked);
     if (cpuOnlyCheckbox.checked) {
+      let gameLoop2 = function() {
+        if (runningGame.isFinish()) {
+          return;
+        }
+        const playerInTurn = runningGame.getPlayerInTurn();
+        const desiredPlay = playerInTurn.getPlay();
+        playerInTurn.plays(desiredPlay);
+        const playedSpot = document.querySelector(`[data-cord="(${desiredPlay.floor},${desiredPlay.row},${desiredPlay.col})"]`);
+        playedSpot.innerText = playerInTurn.marker;
+        const emptyImg = document.createElement("img");
+        emptyImg.setAttribute("src", "./assets/transparent.webp");
+        emptyImg.style.position = "absolute";
+        playedSpot.appendChild(
+          emptyImg
+        );
+        emptyImg.addEventListener("load", () => {
+          gameLoop2();
+        });
+        updateDOMcheckWin(runningGame, desiredPlay);
+      };
+      var gameLoop = gameLoop2;
       const p1Dumb = confirm("Player 1 is dumb?");
       const p2Dumb = confirm("Player 2 is dumb?");
-      runninGame.setGameAsCPUOnly(p1Dumb, p2Dumb);
+      runningGame.setGameAsCPUOnly(p1Dumb, p2Dumb);
+      composeDOMboard(runningGame);
+      gameLoop2();
+    } else {
+      composeDOMboard(runningGame, true);
+      if (cpuGameCheckbox.checked && cpuFirstCheckbox.checked) {
+      }
     }
+  });
+  function composeDOMboard(runningGame, isHumanPlaying) {
     const boards = document.querySelector("#boards");
     if (boards) {
       boards.innerHTML = "";
-      const l = runninGame.board.length;
+      const l = runningGame.board.length;
       for (let i = 0; i < l; i++) {
         const floorDiv = document.createElement("div");
         floorDiv.classList.add("boardFloor");
@@ -515,7 +550,7 @@
           for (let k = 0; k < l; k++) {
             const square = document.createElement("div");
             square.dataset.cord = `(${i},${j},${k})`;
-            square.innerText = runninGame.board[i][j][k];
+            square.innerText = runningGame.board[i][j][k];
             square.classList.add("spot");
             if (j === 0) {
               square.classList.add("top");
@@ -529,24 +564,18 @@
             if (k === l - 1) {
               square.classList.add("right");
             }
-            square.addEventListener("click", () => {
-              if (square.innerText !== "\xB7") {
-                return;
-              }
-              const playingPlayer = runninGame.getPlayerInTurn();
-              const desiredPlay = playingPlayer.to3Dcoord(i, j, k);
-              playingPlayer.plays(desiredPlay);
-              square.innerText = playingPlayer.marker;
-              const winningLine = runninGame.checkWin(runninGame.board.stringMask(), desiredPlay).line;
-              if (runninGame.isFinish()) {
-                winningLine?.forEach((spot) => {
-                  const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`);
-                  if (winningSpot) {
-                    winningSpot.style.backgroundColor = "lightgreen";
-                  }
-                });
-              }
-            });
+            if (isHumanPlaying) {
+              square.addEventListener("click", () => {
+                if (square.innerText !== "\xB7" || runningGame.isFinish()) {
+                  return;
+                }
+                const playingPlayer = runningGame.getPlayerInTurn();
+                const desiredPlay = playingPlayer.to3Dcoord(i, j, k);
+                playingPlayer.plays(desiredPlay);
+                square.innerText = playingPlayer.marker;
+                updateDOMcheckWin(runningGame, desiredPlay);
+              });
+            }
             floorDiv.appendChild(square);
           }
         }
@@ -554,5 +583,18 @@
       }
     }
     ;
-  });
+  }
+  function updateDOMcheckWin(runningGame, desiredPlay) {
+    const winningLine = runningGame.checkWin(runningGame.board.stringMask(), desiredPlay).line;
+    if (runningGame.isFinish()) {
+      winningLine?.forEach((spot) => {
+        const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`);
+        if (winningSpot) {
+          winningSpot.style.backgroundColor = "lightgreen";
+          winningSpot.style.color = "black";
+        }
+      });
+      console.log(runningGame.playLog);
+    }
+  }
 })();

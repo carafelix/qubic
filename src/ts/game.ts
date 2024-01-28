@@ -154,7 +154,7 @@ export class HumanPlayer implements Player{
         this.parentGame.turnPlayHandler(desiredPlay, this)
     }
 
-    public async getPlay() : Promise<Coordinate3D> {
+    public getPlay() : Coordinate3D {
 
         let play;
         let playInput;
@@ -394,11 +394,14 @@ export class Game{
     public playerOne : Player
     public playerTwo : Player
     public winner? : Player
+    public playLog : sucessfulPlay[]
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
         private cpuFirst? : boolean,
     ){
+        this.playLog = [];
+
         if(this.gridSize < 3) this.gridSize = 3;
         this.finish = false;
 
@@ -443,6 +446,13 @@ export class Game{
             this.setPlayIntoBoard(played, from)
             this.switchPlayerTurn()
             this.updateUI()
+            
+            this.playLog.push(
+                {
+                    from,
+                    cord: played
+                }
+            )
         }
     }
 
@@ -585,35 +595,40 @@ export class CLI_game extends Game{
 
 
 
-// interfaces
+// export interfaces
 
 
 
-type Marker = 'x' | 'o';
-type Spot = '·' | Marker
-interface Coordinate2D {
+export type Marker = 'x' | 'o';
+export type Spot = '·' | Marker
+export interface Coordinate2D {
     row: number,
     col: number
 }
-interface Coordinate3D extends Coordinate2D {
+export interface Coordinate3D extends Coordinate2D {
     floor: number
 }
 
+export interface sucessfulPlay {
+    from: Player,
+    cord: Coordinate3D
+} 
 
-interface Player{
+
+export interface Player{
     marker : Marker
     parentGame : Game
     name : string
     plays(desiredPlay : Coordinate3D): void
-    getPlay() : Coordinate3D | Promise<Coordinate3D>
+    getPlay() : Coordinate3D
     to3Dcoord(floor : number, row : number, col : number) : Coordinate3D
 }
 
-interface spotLanes extends Array<Array<spotWithCordAndState>>{
+export interface spotLanes extends Array<Array<spotWithCordAndState>>{
 
 }
 
-interface spotWithCordAndState{
+export interface spotWithCordAndState{
     spotState: Spot,
     cord: Coordinate3D
 }
@@ -623,7 +638,7 @@ interface spotWithCordAndState{
 
 
 
-class maskedBoard extends String {
+export class maskedBoard extends String {
     constructor(boardState : Array<Array<Array<string>>>){
         super(
             ( // workaround for super() call
