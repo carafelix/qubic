@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^3.3.0",
-    "esbuild": "^0.20.0"
+    "esbuild": "^0.20.0",
+    "three": "^0.161.0"
   }
 }

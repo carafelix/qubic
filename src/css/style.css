@@ -4,8 +4,6 @@ body{
     height: 100vh;
     background-color: #333;
     color: white;
-    display: flex;
-    justify-content: space-around;
 }
 
 #game-settings{
@@ -55,4 +53,9 @@ body{
 }
 .spot.bottom{
     border-bottom: none;
+}
+
+#interact{
+    display: flex;
+    justify-content: space-around;
 }

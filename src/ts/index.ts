@@ -112,7 +112,7 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean, isCpuPla
                                     const square = document.createElement('div');
                                     square.dataset.cord = `(${i},${j},${k})`
                                     square.innerText = runningGame.board[i][j][k]
-                                    
+                                    square.setAttribute('title',`(${i},${j},${k})`)
                                     square.classList.add("spot")   
                                     if(j === 0){
                                             square.classList.add("top")   
