@@ -395,13 +395,14 @@ export class Game{
     public playerTwo : Player
     public winner? : Player
     public playLog : sucessfulPlay[]
+    public turn : number
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
         private cpuFirst? : boolean,
     ){
         this.playLog = [];
-
+        this.turn = 0;
         if(this.gridSize < 3) this.gridSize = 3;
         this.finish = false;
 
@@ -453,6 +454,8 @@ export class Game{
                     cord: played
                 }
             )
+
+            this.turn++
         }
     }
 

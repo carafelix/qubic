@@ -2,12 +2,12 @@ import { CPU_Player, Coordinate3D, Game, Player } from "./game";
 
 
 const nGridSizeInput = document.querySelector("#n-grid-size-input") as HTMLInputElement;
-const gridSizeOutput = nGridSizeInput!.nextElementSibling! as HTMLOutputElement
+const gridSizeOutput = nGridSizeInput!.previousElementSibling! as HTMLOutputElement
 
-        gridSizeOutput.innerText = nGridSizeInput.value;
+        gridSizeOutput.innerText = `Grid Size: ${nGridSizeInput.value}`;
 
         nGridSizeInput.oninput = () => {
-            gridSizeOutput.innerText = nGridSizeInput.value
+            gridSizeOutput.innerText = `Grid Size: ${nGridSizeInput.value}`
         }
 
 const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
@@ -25,7 +25,7 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
 
                         composeDOMboard(runningGame)
                         
-                        function gameLoop(){
+                        function cpuOnlyGameLoop(){
                                 if(runningGame.isFinish()){return}
 
                                 const playerInTurn = runningGame.getPlayerInTurn()
@@ -39,7 +39,7 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
                                 }
                                 playerInTurn.plays(desiredPlay)
 
-                                const playedSpot = document.querySelector(`[data-cord="(${desiredPlay.floor},${desiredPlay.row},${desiredPlay.col})"]`) as HTMLDivElement
+                                const playedSpot = document.querySelector(`[data-cord="${cordToParentesis(desiredPlay)}"]`) as HTMLDivElement
                                 playedSpot.innerText = playerInTurn.marker
                                 
                                 updateLog(runningGame,desiredPlay,playerInTurn)
@@ -54,17 +54,19 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
                                         emptyImg
                                 )
                                 emptyImg.addEventListener('load', ()=>{
-                                        gameLoop()
+                                        cpuOnlyGameLoop()
                                 })
                                 
                         }
-                        gameLoop();
+                        cpuOnlyGameLoop();
                         
                 } else {
-                        composeDOMboard(runningGame, true);
-
                         if(cpuGameCheckbox.checked && cpuFirstCheckbox.checked){
-                        
+                                composeDOMboard(runningGame, true, true, true);
+                        } else if (cpuGameCheckbox.checked) {
+                                composeDOMboard(runningGame, true, true);
+                        } else {
+                                composeDOMboard(runningGame, true);
                         }
                 }
         })
@@ -74,26 +76,31 @@ function updateLog(runningGame : Game, playedPlay : Coordinate3D, player : Playe
         // just append a new line each time anyone plays a move
         
         const log = document.querySelector('#log') as HTMLDivElement;
-                log.innerText += `${player.name} played ${player.marker} ${cordToParentesis(playedPlay)}\n`
+                if(log.innerText.length > 'turn 100 : cpu2 played o (4,5,5)'.length*20){
+                        log.innerText = 'Play Log: \n'
+                }
+                log.innerText += `Turn ${runningGame.turn + 1} : ${player.name} played ${player.marker} ${`(${playedPlay.floor},${playedPlay.row},${playedPlay.col})`}\n`
         // log.innerText = '';
         // for(const [index, play] of runningGame.playLog.entries()){
         //         log.innerText += `in turn ${index + 1}: ${play.from.name} played ${cordToParentesis(play.cord)}\n`
         // }
 }
 
-function cordToParentesis(cord : Coordinate3D){
-        return `(${cord.floor},${cord.row},${cord.col})`
-}
-
-function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean){
+function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean, isCpuPlaying? : boolean, isCpuFirst? : boolean){
         const boards = document.querySelector('#boards');  // break down in smaller functions
-        const log =  document.querySelector('#log'); 
+        const log =  document.querySelector('#log') as HTMLDivElement; 
         if(boards && log){
             boards.innerHTML = ''
-            log.innerHTML = ''
-
+            log.innerText = 'Play Log: \n'
             const l = runningGame.board.length;
             
+                if(isCpuFirst){
+                        const cpu = runningGame.getPlayerInTurn()
+                        const play = cpu.getPlay()
+                        cpu.plays(play)
+                        updateLog(runningGame,play, cpu)
+                }
+
             for(let i=0; i<l;i++){
              const floorDiv = document.createElement('div');
                     floorDiv.classList.add('boardFloor');
@@ -119,7 +126,6 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean){
                                     if (k === l - 1) {
                                             square.classList.add("right")   
                                     }
-
                                     if(isHumanPlaying){
                                         square.addEventListener('click', ()=>{
                                                 if(square.innerText !== '·' || runningGame.isFinish()){return}
@@ -131,10 +137,27 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean){
     
                                                 playingPlayer.plays(desiredPlay);
                                                 square.innerText = playingPlayer.marker
-                                                
-                                                ifWinColorDOM(runningGame,desiredPlay)
-                                                
+                                                                                                
                                                 updateLog(runningGame,desiredPlay, playingPlayer)
+                                                ifWinColorDOM(runningGame,desiredPlay)
+
+                                                if(isCpuPlaying){
+                                                        // previous move was valid
+                                                        if(playingPlayer !== runningGame.getPlayerInTurn()){
+                                                                const cpuPlayer = runningGame.getPlayerInTurn()
+                                                                while(cpuPlayer === runningGame.getPlayerInTurn()){
+                                                                        const cpuPlay = cpuPlayer.getPlay();
+                                                                        cpuPlayer.plays(cpuPlay)
+                                                                        if(cpuPlayer !== runningGame.getPlayerInTurn()){
+                                                                                const format = cordToParentesis(cpuPlay)
+                                                                                const cpuSquare = document.querySelector(`[data-cord="${format}"]`) as HTMLDivElement
+                                                                                cpuSquare.innerText = cpuPlayer.marker
+                                                                                updateLog(runningGame, cpuPlay, cpuPlayer)
+                                                                                ifWinColorDOM(runningGame,cpuPlay)
+                                                                        }
+                                                                }
+                                                        }
+                                                }
                                         })
                                     }
                                     floorDiv.appendChild(square)
@@ -150,8 +173,6 @@ function ifWinColorDOM(runningGame : Game, desiredPlay : Coordinate3D){
     
         if(runningGame.isFinish()){
         
-                console.log(winningLine)
-
                 winningLine?.forEach((spot)=>{
                 const winningSpot = document.querySelector(`[data-cord="(${spot.cord.floor},${spot.cord.row},${spot.cord.col})"]`) as HTMLDivElement
                         if(winningSpot){
@@ -164,4 +185,13 @@ function ifWinColorDOM(runningGame : Game, desiredPlay : Coordinate3D){
                 log.innerText += `Winner is: ${runningGame.winner?.name}`
         }
 
+}
+
+function querySquareByCord(played : Coordinate3D){
+        const pp = 
+        document.querySelector('[data-cord]')
+}
+
+function cordToParentesis(cord : Coordinate3D){
+        return `(${cord.floor},${cord.row},${cord.col})`
 }
