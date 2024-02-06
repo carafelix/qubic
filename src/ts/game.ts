@@ -1,5 +1,4 @@
-import { select , input } from "@inquirer/prompts"
-
+import { input } from "../../node_modules/@inquirer/prompts/dist/esm/index.mjs"
 
 
 export class full3Dboard extends Array<Array<Array<string>>>{
@@ -16,7 +15,7 @@ export class full3Dboard extends Array<Array<Array<string>>>{
         return new maskedBoard(boardState)
     }
 
-    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) : spotLanes => {
+    getAllLinesFromSpot = ( spot : Coordinate3D, state? : maskedBoard ) => {
 
         let stateBoard : full3Dboard | undefined = undefined;
 
@@ -42,13 +41,16 @@ export class full3Dboard extends Array<Array<Array<string>>>{
             { col:-1 , row:  1 , floor:  1 },
         ];
 
-        const counts = []
+        const counts = [] 
 
         for(const direction of checkDirections){
             let forward  = {...spot}
             let backward = {...spot}
 
-            const count = [this.getSpot(spot)]
+            const count = [{
+                spotState: this.getSpot(spot),
+                cord: spot
+            }]
             
             for(let i = 0; i < this.length - 1; i++ ){
 
@@ -63,7 +65,10 @@ export class full3Dboard extends Array<Array<Array<string>>>{
                     forward.floor >= 0 &&
                     forward.floor < this.length
                 ) {
-                    count.push(unMaskedBoardState[forward.floor][forward.row][forward.col]);
+                    count.push({
+                        spotState: unMaskedBoardState[forward.floor][forward.row][forward.col] as Spot,
+                        cord: forward
+                    });
                 }
     
                 if (
@@ -74,47 +79,48 @@ export class full3Dboard extends Array<Array<Array<string>>>{
                     backward.floor >= 0 &&
                     backward.floor < this.length
                 ) {
-                    count.push(unMaskedBoardState[backward.floor][backward.row][backward.col]);
+                    count.push({
+                        spotState: unMaskedBoardState[backward.floor][backward.row][backward.col] as Spot,
+                        cord: backward
+                    })
                 }
             }
             counts.push(count)
         }
-
         return counts
-
     }
 
 
-    getSpot = (coord : Coordinate3D, state? : maskedBoard) => {
+    getSpot = (coord : Coordinate3D, state? : maskedBoard) : Spot => {
         if(state){
             const boardState = state.stringUnmask();
             if(!boardState) throw 'Something is wrong dude at getting the spot dude';
 
-           return boardState[coord.floor][coord.row][coord.col]
+           return boardState[coord.floor][coord.row][coord.col] as Spot
         }
-        return this[coord.floor][coord.row][coord.col]
+        return this[coord.floor][coord.row][coord.col] as Spot
     }
     
-    reduceSpotDirectionstoHighestOccurrences = (player : Marker, spotDirections : spotLanes) => {
+    reduceSpotDirectionstoHighestOccurrences = (player : Marker, spotDirections : Array<Array<spotWithCordAndState>>) => {
         return spotDirections.map(line=>{
             return line.filter((v)=>{
-                return v === player
+                return v.spotState === player
             })
         }).reduce((acc,v)=>{
             return (v.length >= acc.length) ? v : acc 
         }, [] )
     }
 
-    reduceSumSpotDirections = (player : Marker, spotDirections : spotLanes) => {
+    reduceSumSpotDirections = (player : Marker, spotDirections : Array<Array<spotWithCordAndState>>) => {
 
     }
 
-    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : spotLanes, nextTurnPlayer? : Marker) => {
+    mapReduceSpotDirectionsToValue = (player : Marker, spotDirections : Array<Array<spotWithCordAndState>>, nextTurnPlayer? : Marker) => {
         const opponentMarker = (player === 'x') ? 'o' : 'x';
-
-        return spotDirections.map((lane : string[]) => {
-            const laneCount = (lane.join('').match(new RegExp(`${player}`, 'g')) || []).length
-            if(lane.includes(opponentMarker)){
+        return spotDirections.map((lane : spotWithCordAndState[]) => {
+            const strLane = lane.map(v=>v.spotState)
+            const laneCount = (strLane.join('').match(new RegExp(`${player}`, 'g')) || []).length
+            if(strLane.includes(opponentMarker)){
                 return 0
             } else if(laneCount === this.length){
                 return Infinity
@@ -148,7 +154,7 @@ export class HumanPlayer implements Player{
         this.parentGame.turnPlayHandler(desiredPlay, this)
     }
 
-    public async getPlay() : Promise<Coordinate3D> {
+    public getPlay() : Coordinate3D {
 
         let play;
         let playInput;
@@ -160,7 +166,14 @@ export class HumanPlayer implements Player{
             try {
                 playInput = prompt(`${this.name} Please input your play in the format of Z Y X, delimited by a space`);
             } catch {
-                playInput = await input({message: `${this.name} Please input your play in the format of Z Y X, delimited by a space`})
+                // this killed the cli version, but I think its easy to get it back if I decouple the way
+                // the Game Class is composed, and with no need to initilize the HumanPlayer with a reference to its parentGame
+                // And make it only return a play whenever a gameState and a marker is pased to it.
+                // and manage the playing of the returned move inside the game
+                // So its more versatile, that way I could compose different players (CLI, GUI, CPU) more easily
+                
+                
+                // playInput = await input({message: `${this.name} Please input your play in the format of Z Y X, delimited by a space`})
             }
             if(!playInput || !validDelimiter.test((playInput.trim()))) {
                 console.log('Input is not in the valid format, try again');
@@ -177,7 +190,8 @@ export class HumanPlayer implements Player{
         return play
 
     }
-    private validStringToPlay(str : string) : Coordinate3D {
+    
+    public validStringToPlay(str : string) : Coordinate3D {
         const ZXY = str.split(/\s/gm)
         return {
             floor: +ZXY[0]-1,
@@ -188,6 +202,14 @@ export class HumanPlayer implements Player{
     
     setName(name : string){
         this.name = name;
+    }
+
+    public to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
+        return {
+            floor,
+            row,
+            col
+        }
     }
 }
 
@@ -220,7 +242,7 @@ export class CPU_Player implements Player{
         return this.getMostStackSpot()
     }
 
-    private to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
+    public to3Dcoord(floor : number, row : number, col : number) : Coordinate3D {
         return {
             floor,
             row,
@@ -243,7 +265,7 @@ export class CPU_Player implements Player{
             for(let y = 0; y < l; y++){
                 for(let x = 0; x < l; x++){
                     const tentativeMove = this.to3Dcoord(z,y,x)
-                    if(board.getSpot(tentativeMove) !== '.'){
+                    if(board.getSpot(tentativeMove) !== '·'){
                         continue
                     }
 
@@ -286,7 +308,8 @@ export class CPU_Player implements Player{
                         }
                         const allLinesFromTentativeMove = this.parentGame.board.getAllLinesFromSpot(tentativeMove);
                         const currentMoveImpact = allLinesFromTentativeMove.reduce((acc,v)=>{
-                            if(v.includes(opponentMarker)){
+                            const strLine = v.map(line => line.spotState)
+                            if(strLine.includes(opponentMarker)){
                                 return acc
                             } else {
                                 return acc + v.join('')
@@ -310,7 +333,7 @@ export class CPU_Player implements Player{
             for(let y = 0; y < l; y++){
                 for(let x = 0; x < l; x++){
 
-                    if(this.parentGame.board.getSpot(this.to3Dcoord(z,y,x)) !== '.,'){
+                    if(this.parentGame.board.getSpot(this.to3Dcoord(z,y,x)) !== '·'){
                         continue
                     }
 
@@ -371,11 +394,15 @@ export class Game{
     public playerOne : Player
     public playerTwo : Player
     public winner? : Player
+    public playLog : sucessfulPlay[]
+    public turn : number
     constructor(
         private gridSize : number,
         private cpuGame? : boolean,
         private cpuFirst? : boolean,
     ){
+        this.playLog = [];
+        this.turn = 0;
         if(this.gridSize < 3) this.gridSize = 3;
         this.finish = false;
 
@@ -388,7 +415,7 @@ export class Game{
                     const row = [];
 
                     for (let k = 0; k < gridSize; k++) {
-                        row.push('.');
+                        row.push('·');
                     }
                     floor.push(row);
                     }
@@ -420,6 +447,15 @@ export class Game{
             this.setPlayIntoBoard(played, from)
             this.switchPlayerTurn()
             this.updateUI()
+            
+            this.playLog.push(
+                {
+                    from,
+                    cord: played
+                }
+            )
+
+            this.turn++
         }
     }
 
@@ -428,7 +464,7 @@ export class Game{
     }
 
     checkPlaySpotIsEmpty = (coord : Coordinate3D) => {
-        return (this.board?.[coord.floor]?.[coord.row]?.[coord.col] === '.')
+        return (this.board?.[coord.floor]?.[coord.row]?.[coord.col] === '·')
     }
 
     updateUI = () => {
@@ -465,28 +501,33 @@ export class Game{
                         const highestXLine = this.board.reduceSpotDirectionstoHighestOccurrences('x' , currentSpotDirections)
     
                         if(highestXLine.length === this.board.length){
-                            return Infinity
+                            return {
+                                bol: Infinity,
+                                line: highestXLine
+                            }
                         }
     
                         const highestOLine = this.board.reduceSpotDirectionstoHighestOccurrences('o' , currentSpotDirections)
     
                         if(highestOLine.length === this.board.length){
-                            return -Infinity
+                            return {
+                                bol: -Infinity,
+                                line: highestOLine
+                            }
                         }
                     }
                 }
             }
 
-            if(!boardState.includes('.')){
-                return true // Ties cannot exist
-            }
-
-            return false // still going
+            return {
+                bol:false,
+                line: null
+            } // still going
 
         } else {
             // check only the provided spot
-
-            const marker = boardState[spot.floor][spot.row][spot.col] as Marker
+            
+            const marker = boardState.stringUnmask()[spot.floor][spot.row][spot.col] as Marker
 
             const spotDirections = this.board.getAllLinesFromSpot({
                 floor: spot.floor,
@@ -497,40 +538,52 @@ export class Game{
             const highestLine = this.board.reduceSpotDirectionstoHighestOccurrences( marker , spotDirections)
 
             if(highestLine.length === this.board.length){
-                return true
-            } else return false // still going
+                return {
+                    bol: true,
+                    line: highestLine
+                }
+            } else return { // still going
+                bol: false,
+                line: highestLine
+            } 
         }
     }
 
 
-    checkWin = () => {
-        const isTerminal = this.checkTerminalState()
-        if(isTerminal){
+    checkWin = (state? : maskedBoard, spot? : Coordinate3D) => {
+        const isTerminal = this.checkTerminalState(state, spot)
+        if(isTerminal.bol){
             this.finish = true
             this.winner = (this.playerOne === this.getPlayerInTurn()) ? this.playerTwo : this.playerOne
         }
+        return isTerminal
     }
 
     isFinish = () => {
         return this.finish
     }
 
-    setGameAsCPUOnly = (setDumbPlayer? : boolean, isP1Dumb? : boolean) => {
+    setGameAsCPUOnly = (isP1Dumb? : boolean, isP2Dumb? : boolean) => {
         // next line doesn't allow for setting the game as cpu only after move already have been played
         if(this.board.stringMask().includes('o') || this.board.stringMask().includes('x')){
             return;
         }
         this.playerOne = new CPU_Player('x', this, 'cpu1');
         this.playerTwo = new CPU_Player('o', this, 'cpu2');
-        if(setDumbPlayer && isP1Dumb){
+        if(isP2Dumb && isP1Dumb){
             this.playerOne = new CPU_Player('x', this, 'cpu1').setDumb()
-        } else if (setDumbPlayer){
             this.playerTwo = new CPU_Player('o', this, 'cpu2').setDumb()
+        } else if (isP2Dumb){
+            this.playerTwo = new CPU_Player('o', this, 'cpu2').setDumb()
+        } else if(isP1Dumb){
+            this.playerOne = new CPU_Player('x', this, 'cpu1').setDumb()
         }
         this.playerInTurn = this.playerOne;
     }
 }
 
+export class CLI_game extends Game{
+}
 
 
 
@@ -547,44 +600,63 @@ export class Game{
 
 
 
-// interfaces
+
+// export interfaces
 
 
 
-type Marker = 'x' | 'o';
-type Spot = '.' | Marker
-interface Coordinate2D {
+export type Marker = 'x' | 'o';
+export type Spot = '·' | Marker
+export interface Coordinate2D {
     row: number,
     col: number
 }
-interface Coordinate3D extends Coordinate2D {
+export interface Coordinate3D extends Coordinate2D {
     floor: number
 }
 
+export interface sucessfulPlay {
+    from: Player,
+    cord: Coordinate3D
+} 
 
-interface Player{
+
+export interface Player{
     marker : Marker
     parentGame : Game
     name : string
     plays(desiredPlay : Coordinate3D): void
-    getPlay() : Coordinate3D | Promise<Coordinate3D>
+    getPlay() : Coordinate3D
+    to3Dcoord(floor : number, row : number, col : number) : Coordinate3D
 }
 
+export interface spotLanes extends Array<Array<spotWithCordAndState>>{
 
-interface spotLanes extends Array<Array<string>>{
+}
 
+export interface spotWithCordAndState{
+    spotState: Spot,
+    cord: Coordinate3D
 }
 
 
 // conventions for maskedBoard
 
-class maskedBoard extends String {
+
+
+export class maskedBoard extends String {
     constructor(boardState : Array<Array<Array<string>>>){
-        const str = []
-        for(let i = 0; i < boardState.length; i++){
-            str.push(boardState[i].join('-').replace(/,/g, ''))
-        }
-        super(str.join('|').replace(/,/g, ''))
+        super(
+            ( // workaround for super() call
+                ()=>{
+                    const str = []
+                    for(let i = 0; i < boardState.length; i++){
+                        str.push(boardState[i].join('-').replace(/,/g, ''))
+                    }
+                    return str
+                }
+                )().join('|').replace(/,/g, '')
+            )
     }
 
     stringUnmask = () => {
@@ -592,12 +664,11 @@ class maskedBoard extends String {
         return new full3Dboard(...board)
     }
 
-
     getAllChildStates = (player : Marker) => { 
         const states = [] // must be maskedBoard[] but I think maskedBoard needs to be changed to Array
         
         for(let i = 0; i < this.length; i++){
-            if(this[i] === '.'){
+            if(this[i] === '·'){
                 const child = this.split('')
                 child[i] = player
 

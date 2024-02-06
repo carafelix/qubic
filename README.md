@@ -75,3 +75,4 @@ To given an idea of the algorithm strength, the following table represents its p
 ### to-do
 - add a log of moves, so the game can be replayed, add also a function that display a board with marking spots as black and white with numbers for easily reading sequences
 - hooking up a web interface should be easy. Display the floors and make every square clickable with a game.playerInTurn.play() function, the turnHandler should do the rest
+- make a log control to display only the X amount of moves per page, and and let you see the past state

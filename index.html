@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qubic</title>
+    <script src="./dist/out.js" defer></script>
+    <link rel="stylesheet" href="./src/css/style.css">
+</head>
+<body>
+    <div id="game-settings">
+        <output></output>
+        <input type="range" name="nLayers" id="n-grid-size-input" min="3" max="10">
+        <div>
+            CPU game?
+            <input type="checkbox" name="cpu-game" id="cpu-game">
+        </div>
+        <div>
+            CPU plays first?
+            <input type="checkbox" name="cpu-first" id="cpu-first">
+        </div>
+        <div>
+            CPU vs CPU game?
+            <input type="checkbox" name="cpu-only" id="cpu-only">
+        </div>
+        <button type="button" id="new-game">New Game</button>
+    </div>
+    <div id="boards">
+
+    </div>
+    <div id="log">
+        Play Log:
+    </div>
+</body>
+</html>

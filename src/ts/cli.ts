@@ -1,16 +1,10 @@
 #!/bin/bash/env node
 
-import { Game, HumanPlayer } from "./game.ts";
-
-export class CLI_Game extends Game {
-  // overwrite playerOne and playerTwo play function trough composition
-  // other option is to prompt inside the cli game and just store those values and pass them to the plays function
-
-}
+import { Game, HumanPlayer } from "./game";
 
 
 async function main() {
-    const game = new CLI_Game(3);
+    const game = new Game(3);
     game.setGameAsCPUOnly(true)
 
     while(!game.isFinish()){
