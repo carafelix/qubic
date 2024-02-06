@@ -79,7 +79,7 @@ function updateLog(runningGame : Game, playedPlay : Coordinate3D, player : Playe
                 if(log.innerText.length > 'turn 100 : cpu2 played o (4,5,5)'.length*20){
                         log.innerText = 'Play Log: \n'
                 }
-                log.innerText += `Turn ${runningGame.turn + 1} : ${player.name} played ${player.marker} ${`(${playedPlay.floor},${playedPlay.row},${playedPlay.col})`}\n`
+                log.innerText += `Turn ${runningGame.turn} : ${player.name} played ${player.marker} ${`(${playedPlay.floor},${playedPlay.row},${playedPlay.col})`}\n`
         // log.innerText = '';
         // for(const [index, play] of runningGame.playLog.entries()){
         //         log.innerText += `in turn ${index + 1}: ${play.from.name} played ${cordToParentesis(play.cord)}\n`
