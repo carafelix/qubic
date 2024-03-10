@@ -143,7 +143,7 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean, isCpuPla
 
                                                 if(isCpuPlaying){
                                                         // previous move was valid
-                                                        if(playingPlayer !== runningGame.getPlayerInTurn()){
+                                                        if(playingPlayer !== runningGame.getPlayerInTurn() && !runningGame.isFinish()){
                                                                 const cpuPlayer = runningGame.getPlayerInTurn()
                                                                 while(cpuPlayer === runningGame.getPlayerInTurn()){
                                                                         const cpuPlay = cpuPlayer.getPlay();

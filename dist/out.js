@@ -608,7 +608,7 @@
                 updateLog(runningGame, desiredPlay, playingPlayer);
                 ifWinColorDOM(runningGame, desiredPlay);
                 if (isCpuPlaying) {
-                  if (playingPlayer !== runningGame.getPlayerInTurn()) {
+                  if (playingPlayer !== runningGame.getPlayerInTurn() && !runningGame.isFinish()) {
                     const cpuPlayer = runningGame.getPlayerInTurn();
                     while (cpuPlayer === runningGame.getPlayerInTurn()) {
                       const cpuPlay = cpuPlayer.getPlay();
