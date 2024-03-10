@@ -148,7 +148,7 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean, isCpuPla
                                                                 while(cpuPlayer === runningGame.getPlayerInTurn()){
                                                                         const cpuPlay = cpuPlayer.getPlay();
                                                                         cpuPlayer.plays(cpuPlay)
-                                                                        if(cpuPlayer !== runningGame.getPlayerInTurn()){
+                                                                        if(cpuPlayer !== runningGame.getPlayerInTurn() && !runningGame.isFinish()){
                                                                                 const format = cordToParentesis(cpuPlay)
                                                                                 const cpuSquare = document.querySelector(`[data-cord="${format}"]`) as HTMLDivElement
                                                                                 cpuSquare.innerText = cpuPlayer.marker
