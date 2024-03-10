@@ -144,12 +144,12 @@ function composeDOMboard(runningGame : Game, isHumanPlaying? : boolean, isCpuPla
 
                                                 if(isCpuPlaying){
                                                         // previous move was valid
-                                                        if(playingPlayer !== runningGame.getPlayerInTurn()){
+                                                        if(playingPlayer !== runningGame.getPlayerInTurn()  && !runningGame.isFinish()){
                                                                 const cpuPlayer = runningGame.getPlayerInTurn()
                                                                 while(cpuPlayer === runningGame.getPlayerInTurn()){
                                                                         const cpuPlay = cpuPlayer.getPlay();
                                                                         cpuPlayer.plays(cpuPlay)
-                                                                        if(cpuPlayer !== runningGame.getPlayerInTurn() && !runningGame.isFinish()){
+                                                                        if(cpuPlayer !== runningGame.getPlayerInTurn()){
                                                                                 const format = cordToParentesis(cpuPlay)
                                                                                 const cpuSquare = document.querySelector(`[data-cord="${format}"]`) as HTMLDivElement
                                                                                 cpuSquare.innerText = cpuPlayer.marker
