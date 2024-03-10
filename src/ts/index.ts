@@ -1,6 +1,7 @@
 import { CPU_Player, Coordinate3D, Game, Player } from "./game";
-
-
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+let gameL = 3;
 const nGridSizeInput = document.querySelector("#n-grid-size-input") as HTMLInputElement;
 const gridSizeOutput = nGridSizeInput!.previousElementSibling! as HTMLOutputElement
 
@@ -17,7 +18,7 @@ const startGameBtn = document.querySelector('#new-game') as HTMLButtonElement;
             const cpuOnlyCheckbox = document.querySelector('#cpu-only') as HTMLInputElement;
 
             const runningGame = new Game(+nGridSizeInput.value, cpuGameCheckbox.checked, cpuFirstCheckbox.checked);
-
+                gameL = runningGame.board.length
                 if(cpuOnlyCheckbox.checked){
                         const p1Dumb = confirm('Player 1 is dumb?')
                         const p2Dumb = confirm('Player 2 is dumb?')
@@ -187,11 +188,43 @@ function ifWinColorDOM(runningGame : Game, desiredPlay : Coordinate3D){
 
 }
 
-function querySquareByCord(played : Coordinate3D){
-        const pp = 
-        document.querySelector('[data-cord]')
-}
-
 function cordToParentesis(cord : Coordinate3D){
         return `(${cord.floor},${cord.row},${cord.col})`
 }
+
+
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
+const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector('canvas') as HTMLCanvasElement,
+})
+
+renderer.setPixelRatio( window.devicePixelRatio )
+renderer.setSize( window.innerWidth, window.innerHeight / 1.5 )
+camera.position.setZ(30)
+
+
+for(let i = 0; i<gameL; i++){
+        const geometry = new THREE.CylinderGeometry( 1, 1, 20, 50 ); 
+        const material = new THREE.MeshStandardMaterial( {color: 0xffffff} ); 
+        const cylinder = new THREE.Mesh( geometry, material ); scene.add( cylinder );
+        cylinder.position.x = i*5
+}
+
+
+const ambientLight = new THREE.AmbientLight(0xffffff)
+scene.add(ambientLight)
+
+const gridHelper = new THREE.GridHelper(100)
+scene.add(gridHelper)
+
+const controls = new OrbitControls(camera, renderer.domElement)
+
+
+
+function animate(){
+        requestAnimationFrame( animate )
+        controls.update()
+        renderer.render( scene, camera )
+}
+animate()

@@ -4,6 +4,7 @@
     "@types/chai": "^4.3.11",
     "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
+    "@types/three": "^0.161.2",
     "chai": "^4.3.10",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2"
