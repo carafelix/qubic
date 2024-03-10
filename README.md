@@ -61,6 +61,7 @@ To given an idea of the algorithm strength, the following table represents its p
 - add a check for: if tentative move leads into opponent having a winning move (a move that we must block), skip that tentative move. maybe allowable in certain depth? maybe scan for the sequence forcing moves if it leads to opponent winning?
 
 ## CLI Game Mode
+- run ```git checkout main```
 - run ```ts-node-esm ./src/cli-game.ts```
 
 ## Test's
@@ -70,9 +71,8 @@ To given an idea of the algorithm strength, the following table represents its p
 ### Disclaimers
 - Urges a code refactor
 - I want to eventually re-take this project back and implement a second more optimal algorithm.
-- On top of the 2D stacked planes I want to render a Three.js Cube representation of the board, for it to be really a 3D game.
+- project on stand-by until further notice
 
 ### to-do
-- add a log of moves, so the game can be replayed, add also a function that display a board with marking spots as black and white with numbers for easily reading sequences
-- hooking up a web interface should be easy. Display the floors and make every square clickable with a game.playerInTurn.play() function, the turnHandler should do the rest
+- On top of the 2D stacked planes I want to render a Three.js Cube representation of the board, for it to be really a 3D game.
 - make a log control to display only the X amount of moves per page, and and let you see the past state
