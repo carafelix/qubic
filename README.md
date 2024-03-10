@@ -69,7 +69,9 @@ To given an idea of the algorithm strength, the following table represents its p
 - run ```npm run tests```
 
 ### Disclaimers
-- Urges a code refactor
+- Urges a code refactor:
+    - GUI split into single responsability objects
+    - Make Game and Players objects independant of each other
 - I want to eventually re-take this project back and implement a second more optimal algorithm.
 - project on stand-by until further notice
 
