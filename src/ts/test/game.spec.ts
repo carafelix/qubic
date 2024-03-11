@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Game } from "../game";
+import { Game, full3Dboard } from "../game.ts";
 
 describe('Basic Functionality Checks',() => {
     
@@ -17,14 +17,14 @@ describe('Basic Functionality Checks',() => {
         testGame.playerOne.plays({floor: 0, row: 0, col: 0})
         testGame.playerOne.plays({floor: 0, row: 0, col: 1})
 
-        expect(testGame.board.getSpot({floor: 0, row: 0, col: 1})).equals('.')
+        expect(testGame.board.getSpot({floor: 0, row: 0, col: 1})).equals('·')
     })
 
     it("Player Two can't play first ", () => {
         const testGame = new Game(4)
         testGame.playerTwo.plays({floor: 0, row: 0, col: 0})
 
-        expect(testGame.board.getSpot({floor: 0, row: 0, col: 0})).equals('.')
+        expect(testGame.board.getSpot({floor: 0, row: 0, col: 0})).equals('·')
     })
 
     it('Preventing a Player from playing in an occupied spot', () => {
@@ -47,9 +47,9 @@ describe('Statistics for Algorithm winRatios',() => {
 
        
 
-        // it('n = 3, p2 is Dumb ', ()=>{
-        //     playAutoGames(20000, 3, true)
-        // })
+        it('n = 3, p2 is Dumb ', ()=>{
+            playAutoGames(20000, 3, true)
+        })
 
         // it('n = 3, p1 is Dumb, p2 is not ', ()=>{
         //     playAutoGames(20000, 3, true, true)
@@ -71,13 +71,13 @@ describe('Statistics for Algorithm winRatios',() => {
         //     playAutoGames(5000, 5, true, true)
         // })
 
-        it('n = 6, p2 is Dumb ', ()=>{
-            playAutoGames(1000, 6, true)
-        })
+        // it('n = 6, p2 is Dumb ', ()=>{
+        //     playAutoGames(1000, 6, true)
+        // })
 
-        it('n = 6, p1 is Dumb, p2 is not ', ()=>{
-            playAutoGames(1000, 6, true, true)
-        })
+        // it('n = 6, p1 is Dumb, p2 is not ', ()=>{
+        //     playAutoGames(1000, 6, true, true)
+        // })
 
 });
 
@@ -107,16 +107,16 @@ async function playAutoGames (repetitions:number , gridSize : number, isDumbGame
             }
         }
 
-        // if(testGame.winner === testGame.playerTwo){
-        //     for(const position of log){
-        //         const mockBoard = new full3Dboard(...JSON.parse(position.board))
-        //         mockBoard.logCurrentState()
-        //         console.log(
-        //             position.desiredPlay, '\n'
-        //         )
-        //     }
-        //     break
-        // }
+        if(testGame.winner === testGame.playerTwo){
+            for(const position of log){
+                const mockBoard = new full3Dboard(...JSON.parse(position.board))
+                mockBoard.logCurrentState()
+                console.log(
+                    position.desiredPlay, '\n'
+                )
+            }
+            // break
+        }
 
         if(testGame.winner === testGame.playerOne){
             playerOneWins++
@@ -129,6 +129,6 @@ async function playAutoGames (repetitions:number , gridSize : number, isDumbGame
     console.log()
     console.log(`    P1 Wins    : ${playerOneWins} / ${n} = ${((playerOneWins / n) * 100).toFixed(1)}%`);
     console.log(`    P2 Wins    : ${playerTwoWins} / ${n} = ${((playerTwoWins / n) * 100).toFixed(1)}%`);
-    console.log(`    Ties       : ${ties} / ${n} = ${((ties / n) * 100).toFixed(1)}%`);
+    // console.log(`    Ties       : ${ties} / ${n} = ${((ties / n) * 100).toFixed(1)}%`);
     console.log()
 }
