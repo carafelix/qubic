@@ -29,7 +29,7 @@ To given an idea of the algorithm strength, the following table represents its p
 
 |       | P1 Wins | P2 Wins | Dumb |
 |-------|:-------:|:-------:|:----:|
-| n = 3 | 19999   | 1       | P2   |
+| n = 3 | 139999  | [1](src/ts/test/losing_game_log.txt)       | P2   |
 | n = 4 | 9987    | 13      | P2   |
 | n = 5 | 4996    | 4       | P2   |
 | n = 6 | 993     | 7       | P2   |
