@@ -65,6 +65,7 @@ To given an idea of the algorithm strength, the following table represents its p
 - run ```ts-node-esm ./src/cli-game.ts```
 
 ## Test's
+- uncomment ``` "noEmit": true``` and ```"allowImportingTsExtensions": true``` in tsconfig.json
 - uncomment the desired [test's](src/test/game.spec.ts)
 - run ```npm run tests```
 
