@@ -515,16 +515,19 @@ export class Game{
         return this.finish
     }
 
-    setGameAsCPUOnly = (setDumbPlayer? : boolean, isP1Dumb? : boolean) => {
+    setGameAsCPUOnly = (isP2Dumb? : boolean, isP1Dumb? : boolean) => {
         // next line doesn't allow for setting the game as cpu only after move already have been played
         if(this.board.stringMask().includes('o') || this.board.stringMask().includes('x')){
             return;
         }
         this.playerOne = new CPU_Player('x', this, 'cpu1');
         this.playerTwo = new CPU_Player('o', this, 'cpu2');
-        if(setDumbPlayer && isP1Dumb){
+        if(isP1Dumb && isP2Dumb){
             this.playerOne = new CPU_Player('x', this, 'cpu1').setDumb()
-        } else if (setDumbPlayer){
+            this.playerTwo = new CPU_Player('o', this, 'cpu2').setDumb()
+        } else if(isP1Dumb){
+            this.playerOne = new CPU_Player('x', this, 'cpu1').setDumb()
+        } else if (isP2Dumb){
             this.playerTwo = new CPU_Player('o', this, 'cpu2').setDumb()
         }
         this.playerInTurn = this.playerOne;

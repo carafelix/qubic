@@ -10,8 +10,18 @@ export class CLI_Game extends Game {
 
 
 async function main() {
-    const game = new CLI_Game(3);
-    game.setGameAsCPUOnly(true)
+    // Human vs Human
+    // const game = new CLI_Game(3);
+
+    // Human vs CPU, Cpu first
+    // const game = new CLI_Game(5, true, true)
+
+    // Human Vs CPU, Human First
+    const game = new CLI_Game(4, true, false)
+
+    // Set game as CPU Only
+    // read the function parameters for setting dumb vs smart cpu's
+    // game.setGameAsCPUOnly()
 
     while(!game.isFinish()){
       // const start = new Date().getTime()
