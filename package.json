@@ -9,8 +9,8 @@
     "ts-node": "^10.9.2"
   },
   "scripts": {
-    "tests": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts --timeout 99900000",
-    "play": "ts-node-esm ./src/cli.ts"
+    "game-tests": "NODE_OPTIONS='--loader ts-node/esm' mocha ./**/*.spec.ts --timeout 99900000",
+    "play": "ts-node-esm ./src/ts/cli.ts"
   },
   "dependencies": {
     "@inquirer/prompts": "^3.3.0"
