@@ -62,7 +62,8 @@ To given an idea of the algorithm strength, the following table represents its p
 
 ## CLI Game Mode
 - run ```git checkout cli-game```
-- run ```ts-node-esm ./src/cli-game.ts```
+- modify the game rules in the [cli file](src/cli.ts) by uncommenting or modifying the Game arguments
+- run ```npm run play```
 
 ## Test's
 - uncomment ``` "noEmit": true``` and ```"allowImportingTsExtensions": true``` in tsconfig.json
