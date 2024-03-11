@@ -39,6 +39,7 @@ To given an idea of the algorithm strength, the following table represents its p
 | n = 5 | 6       | 4994    | P1   |
 | n = 6 | 0       | 1000    | P1   |
 
+As an anecdotical strength reference: I have played against it a few times and winning as P1 or P2 is quite easy on n=3 and n=4, I suppose is the same on higher n
 
 ### The algorithm works in the following manner:
     - If a winning move exist, play it
