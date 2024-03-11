@@ -62,7 +62,7 @@ To given an idea of the algorithm strength, the following table represents its p
 
 ## CLI Game Mode
 - run ```git checkout cli-game```
-- modify the game rules in the [cli file](src/cli.ts) by uncommenting or modifying the Game arguments
+- modify the game rules in the [cli file](src/ts/cli.ts) by uncommenting or modifying the Game arguments
 - run ```npm run play```
 
 ## Test's
