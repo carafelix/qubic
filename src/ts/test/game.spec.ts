@@ -52,7 +52,7 @@ describe('Statistics for Algorithm winRatios',() => {
         })
 
         // it('n = 3, p1 is Dumb, p2 is not ', ()=>{
-        //     playAutoGames(20000, 3, true, true)
+        //     playAutoGames(20000, 3, false, true)
         // })
 
         // it('n = 4, p2 is Dumb ', ()=>{
@@ -60,7 +60,7 @@ describe('Statistics for Algorithm winRatios',() => {
         // })
 
         // it('n = 4, p1 is Dumb, p2 is not ', ()=>{
-        //     playAutoGames(10000, 4, true, true)
+        //     playAutoGames(10000, 4, false, true)
         // })
 
         // it('n = 5, p2 is Dumb ', ()=>{
@@ -68,7 +68,7 @@ describe('Statistics for Algorithm winRatios',() => {
         // })
 
         // it('n = 5, p1 is Dumb, p2 is not ', ()=>{
-        //     playAutoGames(5000, 5, true, true)
+        //     playAutoGames(5000, 5, false, true)
         // })
 
         // it('n = 6, p2 is Dumb ', ()=>{
@@ -76,14 +76,14 @@ describe('Statistics for Algorithm winRatios',() => {
         // })
 
         // it('n = 6, p1 is Dumb, p2 is not ', ()=>{
-        //     playAutoGames(1000, 6, true, true)
+        //     playAutoGames(1000, 6, false, true)
         // })
 
 });
 
 
 
-async function playAutoGames (repetitions:number , gridSize : number, isDumbGame? : boolean ,isP1Dumb? : boolean) {
+async function playAutoGames (repetitions:number , gridSize : number, isP2Dumb? : boolean ,isP1Dumb? : boolean) {
     let playerOneWins = 0
     let playerTwoWins = 0
     let ties = 0;
@@ -91,7 +91,7 @@ async function playAutoGames (repetitions:number , gridSize : number, isDumbGame
     const n = repetitions
     for(let i = 0; i < n; i++){
         const testGame = new Game(gridSize)
-        testGame.setGameAsCPUOnly(isDumbGame, isP1Dumb)
+        testGame.setGameAsCPUOnly(isP1Dumb, isP2Dumb)
         const log = []
 
         while(!testGame.isFinish()){
@@ -115,7 +115,6 @@ async function playAutoGames (repetitions:number , gridSize : number, isDumbGame
                     position.desiredPlay, '\n'
                 )
             }
-            // break
         }
 
         if(testGame.winner === testGame.playerOne){
