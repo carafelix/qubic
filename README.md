@@ -61,7 +61,7 @@ To given an idea of the algorithm strength, the following table represents its p
 - add a check for: if tentative move leads into opponent having a winning move (a move that we must block), skip that tentative move. maybe allowable in certain depth? maybe scan for the sequence forcing moves if it leads to opponent winning?
 
 ## CLI Game Mode
-- run ```git checkout main```
+- run ```git checkout cli-game```
 - run ```ts-node-esm ./src/cli-game.ts```
 
 ## Test's
