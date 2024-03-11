@@ -66,7 +66,7 @@ To given an idea of the algorithm strength, the following table represents its p
 - run ```npm run play```
 
 ## Test's
-- uncomment the desired [test's](src/test/game.spec.ts)
+- uncomment the desired [test's](src/ts/test/game.spec.ts)
 - run ```npm run tests```
 
 ### Disclaimers
