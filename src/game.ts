@@ -169,7 +169,7 @@ export class HumanPlayer implements Player{
 
             play = this.validStringToPlay((playInput.trim()))
             if(!this.parentGame.checkPlaySpotIsEmpty(play)){
-                console.log('Play spot is out of range or occuppied, try again');
+                console.log(`Play spot is out of range or occuppied, try again. Please consider the range start at 1 and finish at ${this.parentGame.board.length}`);
                 play = null
             }
         }
